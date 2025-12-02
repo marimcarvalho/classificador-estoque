@@ -64,8 +64,6 @@ Se preferir separar, crie `style.css` e `app.js` e copie os conteúdos respectiv
 
 ## 🧑‍💻 Autora
 
-Feito para você — Mariana — com um empurrãozinho do ChatGPT ✨
+Feito para você — Mariana ✨
 
----
 
-Se quiser que eu converta em arquivos separados (`index.html`, `style.css`, `app.js`) ou já gere um `index.html` otimizado para GitHub Pages com README e imagem, eu faço agora.
