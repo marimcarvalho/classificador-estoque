@@ -1,491 +1,692 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Classificador de Estoque</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Classificador & Checklist de Estoque — Dark</title>
 
-    <!-- SheetJS XLSX -->
-    <script type="module">
-        import * as XLSX from "https://cdn.sheetjs.com/xlsx-0.20.1/package/xlsx.mjs";
-        window.XLSX = XLSX;
-    </script>
+<!-- SheetJS as module -->
+<script type="module">
+  import * as XLSX from "https://cdn.sheetjs.com/xlsx-0.20.1/package/xlsx.mjs";
+  window.SheetJS = XLSX;
+</script>
 
-    <style>
-        /* ---------------------------
-           ESTILOS GERAIS DO LAYOUT
-        ------------------------------ */
-        body {
-            font-family: Arial, sans-serif;
-            background: #f3f4f6;
-            padding: 20px;
-        }
+<style>
+  :root{
+    --bg:#0b1220;
+    --card:#0f1724;
+    --muted:#94a3b8;
+    --text:#e6eef8;
+    --accent:#60a5fa;
+    --accent-2:#34d399;
+    --danger:#fb7185;
+    --glass: rgba(255,255,255,0.03);
+    --surface:#0b1220;
+    --border: rgba(255,255,255,0.04);
+  }
 
-        .container {
-            max-width: 1200px;
-            margin: auto;
-        }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    background: linear-gradient(180deg,var(--bg), #071022 140%);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    padding:22px;
+  }
 
-        .card {
-            background: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
+  .container{max-width:1200px;margin:0 auto;}
 
-        h1 {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 26px;
-            color: #1e293b;
-        }
+  .card{
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border:1px solid var(--border);
+    padding:18px;border-radius:12px;margin-bottom:18px;box-shadow:0 6px 18px rgba(2,6,23,0.6)
+  }
 
-        .btn-upload {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            background: #2563eb;
-            color: #fff;
-            padding: 12px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-        }
+  header h1{display:flex;gap:12px;align-items:center;font-size:22px;margin:0}
+  .muted{color:var(--muted);font-size:13px}
 
-        .btn-upload:hover {
-            background: #1d4ed8;
-        }
+  .top-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  .btn{
+    background:linear-gradient(180deg,var(--accent),#3b82f6);
+    color:#04203a;border:none;padding:10px 14px;border-radius:10px;font-weight:700;cursor:pointer;display:inline-flex;gap:8px;align-items:center;
+    box-shadow:0 4px 14px rgba(59,130,246,0.15);
+  }
+  .btn:disabled{opacity:.5;cursor:not-allowed}
 
-        .error-box {
-            margin-top: 16px;
-            padding: 10px;
-            background: #fee2e2;
-            border: 1px solid #fecaca;
-            color: #b91c1c;
-            border-radius: 8px;
-            display: none;
-        }
+  input[type=file]{display:none}
 
-        .show { display: block !important; }
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:14px}
+  .stat{background:var(--card);padding:14px;border-radius:10px;border-left:4px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+  .stat h4{margin:0;font-size:13px;color:var(--muted)}
+  .stat p{margin:0;font-weight:800;font-size:20px}
 
-        /* ---- CARDS RESUMO ---- */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 16px;
-        }
+  .tabs{display:flex;gap:8px;margin-top:14px;border-bottom:1px solid var(--border);padding-bottom:8px;overflow:auto}
+  .tab{background:transparent;border:none;color:var(--muted);padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:700}
+  .tab.active{color:var(--text);background:var(--glass);border:1px solid rgba(255,255,255,0.03)}
 
-        .stat-card {
-            display: flex;
-            justify-content: space-between;
-            padding: 16px;
-            border-left: 5px solid;
-            border-radius: 8px;
-            background: #fff;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
+  .toolbar{display:flex;gap:8px;align-items:center;margin-top:12px}
+  .btn-ghost{background:transparent;border:1px dashed rgba(255,255,255,0.04);color:var(--muted);padding:8px 10px;border-radius:8px;cursor:pointer}
 
-        .green { border-color: #10b981; }
-        .blue { border-color: #3b82f6; }
-        .yellow { border-color: #f59e0b; }
-        .red { border-color: #ef4444; }
+  .table-wrap{overflow:auto;margin-top:14px;border-radius:8px}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  thead th{background:rgba(255,255,255,0.02);text-align:left;padding:10px;border-bottom:1px solid var(--border);font-weight:800;color:var(--muted)}
+  tbody td{padding:10px;border-bottom:1px solid rgba(255,255,255,0.02)}
+  .right{text-align:right}
+  .bold{font-weight:700;color:var(--text)}
 
-        .stat-title { color: #64748b; }
-        .stat-number { font-size: 28px; font-weight: bold; }
+  .empty{padding:30px;text-align:center;color:var(--muted)}
 
-        /* ---- ABAS ---- */
-        .tabs {
-            display: flex;
-            border-bottom: 2px solid #e5e7eb;
-            overflow-x: auto;
-            gap: 6px;
-        }
+  /* Checklist */
+  .checklist{display:flex;gap:12px;flex-direction:column}
+  .check-item{display:flex;gap:8px;align-items:center;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.02)}
+  .check-item input{transform:scale(1.2);margin-right:6px}
+  .check-actions{display:flex;gap:8px;margin-top:10px}
 
-        .tab {
-            padding: 12px 20px;
-            border: none;
-            background: none;
-            cursor: pointer;
-            font-weight: bold;
-            color: #475569;
-            border-bottom: 3px solid transparent;
-        }
+  /* Alerts */
+  .alerts{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+  .alert-card{background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.02);display:flex;justify-content:space-between;align-items:center}
+  .alert-card .left{display:flex;flex-direction:column}
+  .alert-card .btn-small{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:6px 8px;border-radius:8px;color:var(--muted);cursor:pointer}
 
-        .tab.active { border-color: #2563eb; color: #2563eb; }
+  /* Search/filter */
+  .filters{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .input{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:8px 10px;border-radius:8px;color:var(--text);min-width:200px}
 
-        .badge {
-            background: #e2e8f0;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 12px;
-            margin-left: 6px;
-        }
-
-        /* ---- TABELA ---- */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 12px;
-        }
-
-        th {
-            text-align: left;
-            padding: 10px;
-            background: #f1f5f9;
-            border-bottom: 2px solid #e2e8f0;
-        }
-
-        td {
-            padding: 10px;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        tr:hover { background: #f8fafc; }
-
-        .right { text-align: right; }
-        .bold { font-weight: bold; }
-
-        .empty-state {
-            text-align: center;
-            padding: 60px 0;
-            color: #94a3b8;
-        }
-
-        .btn-export {
-            background: #10b981;
-            color: #fff;
-            padding: 10px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: bold;
-        }
-
-        .btn-export:hover {
-            background: #059669;
-        }
-
-        .hidden { display: none; }
-    </style>
+  /* small helpers */
+  .muted-sm{color:var(--muted);font-size:13px}
+  .pill{padding:6px 10px;border-radius:999px;background:rgba(255,255,255,0.02);font-weight:700;color:var(--muted)}
+  .footer-note{font-size:13px;color:var(--muted);margin-top:8px}
+  @media (max-width:900px){
+    .grid{grid-template-columns:repeat(2,1fr)}
+  }
+  @media (max-width:560px){
+    .grid{grid-template-columns:1fr}
+    .tabs{flex-wrap:wrap}
+  }
+</style>
 </head>
 
 <body>
-<div class="container">
+  <div class="container">
+    <!-- Header -->
+    <div class="card" id="headerCard">
+      <header style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+        <div>
+          <h1>📦 Classificador & Checklist do Estoque — Dark</h1>
+          <div class="muted">Importe planilhas (.xlsx / .csv) e gere tarefas automáticas do estoque</div>
+        </div>
 
-    <!-- HEADER -->
-    <div class="card">
-        <h1>📦 Classificador de Produtos por Estoque</h1>
-
-        <label class="btn-upload">
+        <div style="display:flex;gap:10px;align-items:center">
+          <label class="btn">
             📁 Carregar Arquivo
-            <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display:none" />
-        </label>
+            <input id="fileInput" type="file" accept=".xlsx,.xls,.csv" />
+          </label>
 
-        <div id="errorBox" class="error-box"></div>
+          <button id="btnExportAll" class="btn" title="Exportar tudo" disabled>⬇️ Exportar Tudo</button>
+        </div>
+      </header>
     </div>
 
-    <!-- CARDS -->
-    <div id="statsGrid" class="stats-grid hidden">
-        <div class="stat-card green">
-            <div><p class="stat-title">Acima de 10</p><p id="count-acima10" class="stat-number">0</p></div>📈
+    <!-- Stats + Alerts -->
+    <div class="card">
+      <div class="top-row" style="justify-content:space-between">
+        <div style="flex:1">
+          <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+            <div class="muted-sm">Status:</div>
+            <div id="statusPill" class="pill">Aguardando arquivo</div>
+            <div class="muted-sm" id="rowCount">0 linhas lidas</div>
+          </div>
+
+          <div class="grid" style="margin-top:12px">
+            <div class="stat">
+              <div>
+                <h4>Acima de 10</h4>
+                <p id="countAcima10">0</p>
+              </div>
+              <div>📈</div>
+            </div>
+            <div class="stat">
+              <div>
+                <h4>Entre 5–10</h4>
+                <p id="count5_10">0</p>
+              </div>
+              <div>📦</div>
+            </div>
+            <div class="stat">
+              <div>
+                <h4>Entre 1–5</h4>
+                <p id="count1_5">0</p>
+              </div>
+              <div>⚠️</div>
+            </div>
+            <div class="stat">
+              <div>
+                <h4>Zerados (≤1)</h4>
+                <p id="countZerados">0</p>
+              </div>
+              <div>📉</div>
+            </div>
+          </div>
         </div>
-        <div class="stat-card blue">
-            <div><p class="stat-title">Entre 5-10</p><p id="count-entre5_10" class="stat-number">0</p></div>📦
+
+        <div style="width:360px">
+          <h4 style="margin:0 0 8px 0">Tarefas Inteligentes</h4>
+          <div class="alerts" id="alertsArea">
+            <!-- alert cards injected here -->
+          </div>
         </div>
-        <div class="stat-card yellow">
-            <div><p class="stat-title">Entre 1-5</p><p id="count-entre1_5" class="stat-number">0</p></div>⚠️
-        </div>
-        <div class="stat-card red">
-            <div><p class="stat-title">Zerados (≤1)</p><p id="count-zerados" class="stat-number">0</p></div>📉
-        </div>
+      </div>
+
+      <div class="footer-note">Dica: clique em um alerta para ver os itens e marcar tarefas automaticamente.</div>
     </div>
 
-    <!-- CONTEÚDO PRINCIPAL -->
-    <div id="contentCard" class="card hidden">
+    <!-- Main content -->
+    <div class="card" id="mainCard" style="display:block">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+        <div style="flex:1;min-width:320px">
+          <div class="tabs" id="tabs">
+            <button class="tab active" data-tab="acima10">📈 Acima de 10 <span class="pill" id="badgeAcima10">0</span></button>
+            <button class="tab" data-tab="entre5_10">📦 Entre 5–10 <span class="pill" id="badge5_10">0</span></button>
+            <button class="tab" data-tab="entre1_5">⚠️ Entre 1–5 <span class="pill" id="badge1_5">0</span></button>
+            <button class="tab" data-tab="zerados">📉 Zerados <span class="pill" id="badgeZerados">0</span></button>
+            <button class="tab" data-tab="todas">📋 Todas <span class="pill" id="badgeTodas">0</span></button>
+          </div>
 
-        <!-- ABAS -->
-        <div class="tabs">
-            <button class="tab active" data-tab="acima10">📈 Acima de 10 <span id="badge-acima10" class="badge">0</span></button>
-            <button class="tab" data-tab="entre5_10">📦 Entre 5-10 <span id="badge-entre5_10" class="badge">0</span></button>
-            <button class="tab" data-tab="entre1_5">⚠️ Entre 1-5 <span id="badge-entre1_5" class="badge">0</span></button>
-            <button class="tab" data-tab="zerados">📉 Zerados <span id="badge-zerados" class="badge">0</span></button>
+          <div class="toolbar" style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+            <input id="searchInput" class="input" placeholder="Buscar por referência, descrição, NCM..." />
+            <select id="sortSelect" class="input">
+              <option value="">Ordenar</option>
+              <option value="desc_asc">Descrição A–Z</option>
+              <option value="desc_desc">Descrição Z–A</option>
+              <option value="ref_asc">Referência A–Z</option>
+              <option value="ref_desc">Referência Z–A</option>
+              <option value="qtd_desc">Qtd — Maior primeiro</option>
+              <option value="qtd_asc">Qtd — Menor primeiro</option>
+            </select>
+
+            <button id="btnExport" class="btn-ghost" title="Exportar view atual" disabled>⬇ Exportar Visão</button>
+            <button id="btnAutoTasks" class="btn-ghost" title="Gerar tarefas automaticamente">⚙️ Gerar Tarefas</button>
+          </div>
+
+          <div class="table-wrap" id="tableWrap" style="margin-top:12px">
+            <!-- table rendered here -->
+            <div class="empty" id="tableEmpty">Carregue um arquivo para ver produtos.</div>
+          </div>
         </div>
 
-        <!-- EXPORTAÇÃO -->
-        <div style="margin-top: 12px;">
-            <button class="btn-export" id="btnExport">⬇️ Exportar CSV</button>
-        </div>
+        <!-- Checklist -->
+        <aside style="width:320px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <h3 style="margin:0">Checklist</h3>
+            <div class="muted-sm">Salvo no navegador</div>
+          </div>
 
-        <!-- TABELA -->
-        <div id="tableContainer"></div>
+          <div class="card" style="padding:12px">
+            <div class="checklist" id="checklist">
+              <!-- check items here -->
+            </div>
+
+            <div class="check-actions">
+              <button id="btnAddTask" class="btn-ghost">+ Adicionar tarefa</button>
+              <button id="btnClearTasks" class="btn-ghost">Limpar</button>
+            </div>
+          </div>
+        </aside>
+      </div>
     </div>
 
-    <!-- ESTADO INICIAL -->
-    <div id="emptyState" class="card">
-        <div class="empty-state">
-            ☁️<br><br>
-            Carregue seu arquivo para começar.<br><br>
-            <small>O sistema classifica automaticamente os produtos pelo estoque.</small>
+    <!-- Debug & footer -->
+    <div class="card">
+      <details open style="color:var(--muted)">
+        <summary style="cursor:pointer">📋 DEBUG / Informações</summary>
+        <div style="margin-top:8px">
+          <div class="muted-sm">Headers detectados: <span id="detHeaders">—</span></div>
+          <div class="muted-sm">Logs: <span id="logArea">—</span></div>
         </div>
+      </details>
     </div>
 
-</div>
+  </div>
 
 <script>
-/* -----------------------------------------------------
-   FUNÇÕES DE NORMALIZAÇÃO
------------------------------------------------------ */
-function normalizarNome(str) {
-    return String(str)
-        .toLowerCase()
-        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-        .replace(/\s+/g, "")
-        .replace(/_/g, "")
-        .trim();
-}
+/* ======================================================
+   App JS: leitura XLSX/CSV, classificação, tasks, checklist
+   ====================================================== */
 
-function detectarCabecalho(sheetJson) {
-    for (let i = 0; i < sheetJson.length; i++) {
-        const row = sheetJson[i];
-        const nomes = Object.values(row).map(normalizarNome);
-        const indic = ["grupo","ref","referencia","descricao","qtd","qtdreal"];
-        const score = nomes.filter(n => indic.some(x => n.includes(x))).length;
-        if (score >= 2) return i;
+(async function(){
+
+  // helpers
+  const $ = s => document.querySelector(s);
+  const $$ = s => Array.from(document.querySelectorAll(s));
+  const normalize = str => String(str||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'').replace(/_/g,'').trim();
+
+  // state
+  let rawJson = [];
+  let produtos = []; // normalized objects
+  let buckets = {acima10:[],entre5_10:[],entre1_5:[],zerados:[],todas:[]};
+  let currentTab = 'acima10';
+  let detectedHeaders = [];
+  let checklist = []; // {id,text,done}
+  const STORAGE_KEY = 'classif_checklist_v1';
+
+  // elements
+  const fileInput = $('#fileInput');
+  const statusPill = $('#statusPill');
+  const rowCountEl = $('#rowCount');
+  const detHeadersEl = $('#detHeaders');
+  const logArea = $('#logArea');
+  const alertsArea = $('#alertsArea');
+  const tableWrap = $('#tableWrap');
+  const tableEmpty = $('#tableEmpty');
+  const searchInput = $('#searchInput');
+  const sortSelect = $('#sortSelect');
+  const tabsEl = $('#tabs');
+  const btnExportView = $('#btnExport');
+  const btnExportAll = $('#btnExportAll');
+  const btnAutoTasks = $('#btnAutoTasks');
+
+  const checklistEl = $('#checklist');
+  const btnAddTask = $('#btnAddTask');
+  const btnClearTasks = $('#btnClearTasks');
+
+  // logging
+  function log(msg){
+    // show brief, also keep last text
+    logArea.textContent = msg;
+    //console.log(msg);
+  }
+
+  // load checklist from storage
+  function loadChecklist(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      checklist = raw ? JSON.parse(raw) : [];
+    }catch(e){ checklist = [] }
+    renderChecklist();
+  }
+  function saveChecklist(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(checklist)); }
+
+  function addTask(text, done=false){
+    checklist.unshift({id:Date.now().toString(36), text, done});
+    saveChecklist();
+    renderChecklist();
+  }
+  function toggleTask(id){
+    checklist = checklist.map(t => t.id===id ? {...t, done: !t.done} : t);
+    saveChecklist(); renderChecklist();
+  }
+  function removeTask(id){
+    checklist = checklist.filter(t=>t.id!==id); saveChecklist(); renderChecklist();
+  }
+  function clearTasks(){ checklist = []; saveChecklist(); renderChecklist(); }
+
+  function renderChecklist(){
+    checklistEl.innerHTML = '';
+    if (checklist.length===0){
+      checklistEl.innerHTML = '<div class="muted-sm">Nenhuma tarefa ainda — crie uma</div>';
+      return;
     }
-    return 0;
-}
+    checklist.forEach(item=>{
+      const div = document.createElement('div');
+      div.className = 'check-item';
+      div.innerHTML = `
+        <input type="checkbox" ${item.done?'checked':''} data-id="${item.id}" />
+        <div style="flex:1">${item.text}</div>
+        <button class="btn-ghost" data-del="${item.id}">Rem</button>
+      `;
+      checklistEl.appendChild(div);
+    });
+    // bind
+    $$('input[type=checkbox]', checklistEl).forEach(cb=>{
+      cb.addEventListener('change', e=>toggleTask(e.target.dataset.id));
+    });
+    $$('[data-del]', checklistEl).forEach(b=>b.addEventListener('click', e=>removeTask(e.target.dataset.del)));
+  }
 
-function acharColuna(obj, termos) {
-    for (let k in obj) {
-        const nk = normalizarNome(k);
-        if (termos.some(t => nk.includes(t))) return k;
+  btnAddTask.addEventListener('click', ()=> {
+    const txt = prompt('Descreva a tarefa:');
+    if (txt && txt.trim()) addTask(txt.trim(), false);
+  });
+  btnClearTasks.addEventListener('click', ()=> {
+    if (confirm('Remover todas as tarefas?')) clearTasks();
+  });
+
+  // file reading
+  fileInput.addEventListener('change', async (ev) => {
+    const f = ev.target.files[0];
+    if (!f) return;
+    resetState();
+    statusPill.textContent = 'Processando...';
+    try{
+      const SheetJS = window.SheetJS;
+      if (!SheetJS) throw new Error('SheetJS não carregado');
+      let json = [];
+      if (f.name.endsWith('.xlsx')||f.name.endsWith('.xls')) {
+        const data = await f.arrayBuffer();
+        const wb = SheetJS.read(new Uint8Array(data),{type:'array'});
+        const sheet = wb.Sheets[wb.SheetNames[0]];
+        const arr = SheetJS.utils.sheet_to_json(sheet, { header:1, defval:null });
+        log('Linhas: ' + arr.length);
+        // detect header row (within first 10)
+        let headerIndex = 0;
+        for (let i=0;i<Math.min(arr.length,10);i++){
+          const row = arr[i] || [];
+          const norm = row.map(c => normalize(String(c||'')));
+          const keys = ['grupo','referencia','ref','descricao','qtdreal','qtd'];
+          const score = norm.filter(n => keys.some(k=>n.includes(k))).length;
+          if (score >= 2) { headerIndex = i; break; }
+        }
+        const headers = (arr[headerIndex] || []).map(h => String(h||''));
+        const rows = arr.slice(headerIndex+1);
+        json = rows.map(r => {
+          const obj = {};
+          headers.forEach((h,idx)=> obj[String(h||'')]= r[idx] === undefined ? null : r[idx]);
+          return obj;
+        });
+        detectedHeaders = headers.map(h=>normalize(String(h||'')));
+        detHeadersEl.textContent = detectedHeaders.join(', ');
+        rowCountEl.textContent = rows.length + ' linhas lidas';
+      } else {
+        const txt = await f.text();
+        const lines = txt.split(/\r?\n/).filter(l=>l.trim());
+        const headers = lines[0].split(/[,;\t]/).map(h=>String(h||''));
+        const rows = lines.slice(1);
+        json = rows.map(r=>{
+          const cols = r.split(/[,;\t]/);
+          const obj = {};
+          headers.forEach((h,i)=> obj[String(h||'')] = cols[i] === undefined ? null : cols[i]);
+          return obj;
+        });
+        detectedHeaders = headers.map(h=>normalize(String(h||'')));
+        detHeadersEl.textContent = detectedHeaders.join(', ');
+        rowCountEl.textContent = rows.length + ' linhas lidas';
+      }
+
+      // normalize keys for processing
+      rawJson = json.map(row=>{
+        const o = {};
+        Object.keys(row || {}).forEach(k=>{
+          o[normalize(k)] = row[k];
+        });
+        return o;
+      });
+
+      // map columns
+      processRawToProdutos(rawJson);
+
+      statusPill.textContent = 'Pronto';
+    } catch(err){
+      statusPill.textContent = 'Erro';
+      alert('Erro lendo arquivo: ' + (err && err.message ? err.message : err));
+    }
+  });
+
+  function resetState(){
+    rawJson = []; produtos=[]; buckets={acima10:[],entre5_10:[],entre1_5:[],zerados:[],todas:[]};
+    tableWrap.innerHTML = ''; tableEmpty.style.display='block';
+    $('#countAcima10').textContent='0'; $('#count5_10').textContent='0';
+    $('#count1_5').textContent='0'; $('#countZerados').textContent='0';
+    $('#badgeAcima10').textContent='0'; $('#badge5_10').textContent='0';
+    $('#badge1_5').textContent='0'; $('#badgeZerados').textContent='0'; $('#badgeTodas').textContent='0';
+    alertsArea.innerHTML = ''; btnExportView.disabled = true; btnExportAll.disabled = true;
+  }
+
+  function findKey(obj, candidates){
+    for (const c of candidates){
+      for (const k in obj){
+        if (normalize(k).includes(c)) return k;
+      }
     }
     return null;
-}
+  }
 
-/* -----------------------------------------------------
-   VARIÁVEIS GLOBAIS
------------------------------------------------------ */
-var dados = {};
-var abaAtiva = "acima10";
-
-/* -----------------------------------------------------
-   EVENTOS
------------------------------------------------------ */
-document.getElementById("fileInput").addEventListener("change", processarArquivo);
-document.getElementById("btnExport").addEventListener("click", exportarCSV);
-
-document.querySelectorAll(".tab").forEach(tab =>
-    tab.addEventListener("click", () => mostrarAba(tab.dataset.tab))
-);
-
-/* -----------------------------------------------------
-   PROCESSAR ARQUIVO
------------------------------------------------------ */
-function processarArquivo(e) {
-    const arquivo = e.target.files[0];
-    if (!arquivo) return;
-
-    const reader = new FileReader();
-
-    reader.onload = function(event) {
-        try {
-            let json = [];
-
-            if (arquivo.name.endsWith(".xlsx") || arquivo.name.endsWith(".xls")) {
-                const data = new Uint8Array(event.target.result);
-                const wb = XLSX.read(data, { type: "array" });
-                const sheet = wb.Sheets[wb.SheetNames[0]];
-
-                const arr = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-                const headerIndex = detectarCabecalho(
-                    arr.map(r => Object.fromEntries(r.map((v,i)=>[i,v])))
-                );
-
-                const headers = arr[headerIndex];
-                const rows    = arr.slice(headerIndex + 1);
-
-                json = rows.map(r => {
-                    const obj = {};
-                    headers.forEach((h, i) => obj[normalizarNome(h)] = r[i]);
-                    return obj;
-                });
-
-            } else {
-                const txt = event.target.result;
-                const linhas = txt.split("\n").filter(l => l.trim());
-
-                const headers = linhas[0].split(/[,;\t]/);
-                const rows = linhas.slice(1);
-
-                json = rows.map(l => {
-                    const c = l.split(/[,;\t]/);
-                    const obj = {};
-                    headers.forEach((h, i) => obj[normalizarNome(h)] = c[i]);
-                    return obj;
-                });
-            }
-
-            processarProdutos(json);
-
-        } catch (err) {
-            showError("Erro ao processar arquivo: " + err.message);
-        }
-    };
-
-    if (arquivo.name.endsWith(".xlsx") || arquivo.name.endsWith(".xls"))
-        reader.readAsArrayBuffer(arquivo);
-    else
-        reader.readAsText(arquivo);
-}
-
-/* -----------------------------------------------------
-   PROCESSAR PRODUTOS
------------------------------------------------------ */
-function processarProdutos(json) {
-    const exemplo = json[0] || {};
-
-    const colGrupo = acharColuna(exemplo, ["grupo"]);
-    const colRef = acharColuna(exemplo, ["ref","referencia","codigo"]);
-    const colDesc = acharColuna(exemplo, ["descricao","desc"]);
-    const colCar = acharColuna(exemplo, ["caracter"]);
-    const colQtd = acharColuna(exemplo, ["qtdreal","quantidade","qtd","saldo"]);
-    const colVenda = acharColuna(exemplo, ["prcvenda","precovenda","venda"]);
-    const colBarra = acharColuna(exemplo, ["barra","ean"]);
-    const colNcm = acharColuna(exemplo, ["ncm"]);
-
-    if (!colRef || !colQtd) {
-        showError("As colunas obrigatórias 'referencia' e 'qtdreal' não foram encontradas.");
-        console.log("Cabeçalho detectado:", Object.keys(exemplo));
-        return;
+  function processRawToProdutos(normalizedRows){
+    if (!normalizedRows || normalizedRows.length===0) {
+      alert('Sem dados na planilha.');
+      return;
     }
 
-    const produtos = json.map(l => ({
-        grupo: String(l[colGrupo] || "").trim(),
-        referencia: String(l[colRef] || "").trim(),
-        descricao: String(l[colDesc] || "").trim(),
-        caracter: String(l[colCar] || "").trim(),
-        qtdreal: parseFloat(String(l[colQtd] || "0").replace(",", ".")) || 0,
-        prc_venda: parseFloat(String(l[colVenda] || "0").replace(",", ".")) || 0,
-        barra: String(l[colBarra] || "").trim(),
-        ncm: String(l[colNcm] || "").trim()
-    }));
+    const sample = normalizedRows[0];
 
-    dados = {
-        acima10: produtos.filter(p => p.qtdreal > 10),
-        entre5_10: produtos.filter(p => p.qtdreal > 5 && p.qtdreal <= 10),
-        entre1_5: produtos.filter(p => p.qtdreal > 1 && p.qtdreal <= 5),
-        zerados: produtos.filter(p => p.qtdreal <= 1)
-    };
+    const kGrupo = findKey(sample, ['grupo']);
+    const kRef = findKey(sample, ['referencia','ref','codigo']);
+    const kDesc = findKey(sample, ['descricao','desc']);
+    const kCaracter = findKey(sample, ['caracter']);
+    const kQtd = findKey(sample, ['qtdreal','qtd','quantidade','saldo']);
+    const kPrc = findKey(sample, ['prcvenda','precovenda','preco','valor']);
+    const kBarra = findKey(sample, ['barra','ean']);
+    const kNcm = findKey(sample, ['ncm']);
 
-    atualizarInterface();
-}
-
-/* -----------------------------------------------------
-   INTERFACE
------------------------------------------------------ */
-function atualizarInterface() {
-    document.getElementById("emptyState").classList.add("hidden");
-    document.getElementById("statsGrid").classList.remove("hidden");
-    document.getElementById("contentCard").classList.remove("hidden");
-
-    for (let cat in dados) {
-        document.getElementById("count-" + cat).textContent = dados[cat].length;
-        document.getElementById("badge-" + cat).textContent = dados[cat].length;
+    if (!kRef || !kQtd) {
+      alert("As colunas obrigatórias 'referencia' e 'qtdreal' não foram encontradas. Headers: " + Object.keys(sample).join(', '));
+      return;
     }
 
-    mostrarAba("acima10");
-}
+    produtos = normalizedRows.map(r => {
+      return {
+        grupo: String(r[kGrupo] || r['grupo'] || '') .trim(),
+        referencia: String(r[kRef] || r['referencia'] || r['ref'] || '') .trim(),
+        descricao: String(r[kDesc] || r['descricao'] || '') .trim(),
+        caracter: String(r[kCaracter] || r['caracter'] || '') .trim(),
+        qtdreal: parseFloat(String(r[kQtd] || r['qtdreal'] || 0).toString().replace(',','.')) || 0,
+        prc_venda: parseFloat(String(r[kPrc] || r['prcvenda'] || 0).toString().replace(',','.')) || 0,
+        barra: String(r[kBarra] || r['barra'] || '') .trim(),
+        ncm: String(r[kNcm] || r['ncm'] || '') .trim()
+      };
+    }).filter(p => p.referencia);
 
-function mostrarAba(cat) {
-    abaAtiva = cat;
-
-    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-    document.querySelector(`[data-tab="${cat}"]`).classList.add("active");
-
-    renderTabela(cat);
-}
-
-function renderTabela(cat) {
-    const container = document.getElementById("tableContainer");
-    const produtos = dados[cat];
-
-    if (!produtos || produtos.length === 0) {
-        container.innerHTML = "<div class='empty-state'>Nenhum produto nesta categoria.</div>";
-        return;
-    }
-
-    let html = `
-        <table>
-            <thead>
-                <tr>
-                    <th>Grupo</th>
-                    <th>Referência</th>
-                    <th>Descrição</th>
-                    <th>Caracter</th>
-                    <th class="right">Qtd Real</th>
-                    <th class="right">Preço Venda</th>
-                    <th>Barra</th>
-                    <th>NCM</th>
-                </tr>
-            </thead>
-            <tbody>
-    `;
-
-    produtos.forEach(p => {
-        html += `
-            <tr>
-                <td>${p.grupo}</td>
-                <td class="bold">${p.referencia}</td>
-                <td>${p.descricao}</td>
-                <td>${p.caracter}</td>
-                <td class="right bold">${p.qtdreal.toFixed(2)}</td>
-                <td class="right bold">R$ ${p.prc_venda.toFixed(2)}</td>
-                <td>${p.barra}</td>
-                <td>${p.ncm}</td>
-            </tr>
-        `;
+    // build buckets
+    buckets = {acima10:[],entre5_10:[],entre1_5:[],zerados:[],todas:produtos.slice()};
+    produtos.forEach(p=>{
+      if (p.qtdreal > 10) buckets.acima10.push(p);
+      else if (p.qtdreal > 5 && p.qtdreal <=10) buckets.entre5_10.push(p);
+      else if (p.qtdreal >1 && p.qtdreal <=5) buckets.entre1_5.push(p);
+      else buckets.zerados.push(p);
     });
 
-    html += "</tbody></table>";
-    container.innerHTML = html;
-}
+    // update counters
+    $('#countAcima10').textContent = buckets.acima10.length;
+    $('#count5_10').textContent = buckets.entre5_10.length;
+    $('#count1_5').textContent = buckets.entre1_5.length;
+    $('#countZerados').textContent = buckets.zerados.length;
 
-/* -----------------------------------------------------
-   EXPORTAR CSV
------------------------------------------------------ */
-function exportarCSV() {
-    if (!dados[abaAtiva]) return;
+    $('#badgeAcima10').textContent = buckets.acima10.length;
+    $('#badge5_10').textContent = buckets.entre5_10.length;
+    $('#badge1_5').textContent = buckets.entre1_5.length;
+    $('#badgeZerados').textContent = buckets.zerados.length;
+    $('#badgeTodas').textContent = buckets.todas.length;
 
-    const linhas = [
-        "Grupo,Referência,Descrição,Caracter,Quantidade,Preço Venda,Barra,NCM"
+    // generate alerts
+    generateAlerts();
+
+    // enable exports
+    btnExportView.disabled = false; btnExportAll.disabled=false;
+
+    // show default tab
+    renderTab(currentTab);
+  }
+
+  // Alerts generator
+  function generateAlerts(){
+    alertsArea.innerHTML = '';
+    const all = buckets.todas;
+    const priceZero = all.filter(p => (p.prc_venda === 0 || p.prc_venda === 0.0));
+    const noBar = all.filter(p => !p.barra || p.barra.trim()==='');
+    const noNcm = all.filter(p => !p.ncm || p.ncm.trim()==='');
+    const negStock = all.filter(p => p.qtdreal < 0);
+    // duplicates by referencia
+    const refMap = {}; all.forEach(p=>{ refMap[p.referencia] = (refMap[p.referencia]||0) + 1 });
+    const dupRefs = Object.keys(refMap).filter(k=>refMap[k]>1).map(k=> ({ref:k,count:refMap[k]}));
+    // duplicate descriptions
+    const descMap = {}; all.forEach(p=> { const d = p.descricao||''; descMap[d] = (descMap[d]||0)+1 });
+    const dupDesc = Object.keys(descMap).filter(k=>descMap[k]>1).map(k=> ({desc:k,count:descMap[k]}));
+
+    const alertDefs = [
+      {id:'priceZero', label:'Preço zerado', count:priceZero.length, list:priceZero},
+      {id:'noBar', label:'Sem código de barras', count:noBar.length, list:noBar},
+      {id:'noNcm', label:'Sem NCM', count:noNcm.length, list:noNcm},
+      {id:'negStock', label:'Estoque negativo', count:negStock.length, list:negStock},
+      {id:'dupRef', label:'Referências duplicadas', count:dupRefs.length, list:dupRefs},
+      {id:'dupDesc', label:'Descrições duplicadas', count:dupDesc.length, list:dupDesc}
     ];
 
-    dados[abaAtiva].forEach(p => {
-        linhas.push(
-            `"${p.grupo}","${p.referencia}","${p.descricao}","${p.caracter}",${p.qtdreal},${p.prc_venda},"${p.barra}","${p.ncm}"`
-        );
+    alertDefs.forEach(a=>{
+      const div = document.createElement('div');
+      div.className = 'alert-card';
+      div.innerHTML = `<div class="left"><strong style="font-size:14px">${a.label}</strong><div class="muted-sm">${a.count} itens</div></div>
+        <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+          <button class="btn-small" data-alert="${a.id}">Ver</button>
+          <button class="btn-small" data-action="${a.id}">Marcar</button>
+        </div>`;
+      alertsArea.appendChild(div);
+      div.querySelector('[data-alert]').addEventListener('click', ()=> openAlertList(a));
+      div.querySelector('[data-action]').addEventListener('click', ()=> autoAddTasksForAlert(a));
     });
+  }
 
-    const csv = linhas.join("\n");
-    const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
+  function openAlertList(alertDef){
+    // render list in tableWrap
+    if (!alertDef || !alertDef.list) return;
+    const list = alertDef.list;
+    let html = `<div style="margin-bottom:8px"><strong>${alertDef.label}</strong> — ${alertDef.count} itens<button class="btn-ghost" style="float:right" onclick="document.getElementById('tableWrap').scrollIntoView()">Fechar</button></div>`;
+    html += '<div class="table-wrap"><table><thead><tr><th>Referência / Info</th><th>Qtd</th><th>Grupo</th><th>Descrição</th></tr></thead><tbody>';
+    // list may be objects or simple
+    list.forEach(it=>{
+      if (it && it.referencia){
+        html += `<tr><td class="bold">${escapeHtml(it.referencia)}</td><td class="right">${(it.qtdreal||0).toFixed(2)}</td><td>${escapeHtml(it.grupo)}</td><td>${escapeHtml(it.descricao)}</td></tr>`;
+      } else if (it && it.ref){
+        html += `<tr><td class="bold">${escapeHtml(it.ref)}</td><td>-</td><td>-</td><td>duplicada</td></tr>`;
+      } else if (it && it.desc){
+        html += `<tr><td class="bold">${escapeHtml(it.desc)}</td><td>-</td><td>-</td><td>descrição duplicada</td></tr>`;
+      }
+    });
+    html += '</tbody></table></div>';
+    tableWrap.innerHTML = html;
+  }
 
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "produtos_" + abaAtiva + ".csv";
-    link.click();
-}
+  function autoAddTasksForAlert(alertDef){
+    if (!alertDef) return;
+    const label = alertDef.label;
+    addTask(`Revisar: ${label} — ${alertDef.count} itens`);
+    alert('Tarefa adicionada ao checklist');
+  }
 
-/* -----------------------------------------------------
-   ERROS
------------------------------------------------------ */
-function showError(msg) {
-    const box = document.getElementById("errorBox");
-    box.textContent = msg;
-    box.classList.add("show");
-}
+  // escaping
+  function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  // tabs behavior
+  tabsEl.addEventListener('click', (e)=>{
+    const btn = e.target.closest('.tab');
+    if (!btn) return;
+    $$('.tab').forEach(t=>t.classList.remove('active'));
+    btn.classList.add('active');
+    const tab = btn.dataset.tab;
+    currentTab = tab;
+    renderTab(tab);
+  });
+
+  // render tab
+  function renderTab(tab){
+    let list = [];
+    if (tab === 'acima10') list = buckets.acima10;
+    else if (tab === 'entre5_10') list = buckets.entre5_10;
+    else if (tab === 'entre1_5') list = buckets.entre1_5;
+    else if (tab === 'zerados') list = buckets.zerados;
+    else list = buckets.todas;
+
+    // apply search filter
+    const q = (searchInput.value||'').trim().toLowerCase();
+    if (q) {
+      list = list.filter(p => (p.referencia + ' ' + p.descricao + ' ' + p.ncm + ' ' + p.grupo).toLowerCase().includes(q));
+    }
+
+    // sort
+    const sort = sortSelect.value;
+    if (sort) {
+      list = list.slice();
+      if (sort === 'desc_asc') list.sort((a,b)=> (a.descricao||'').localeCompare(b.descricao||''));
+      if (sort === 'desc_desc') list.sort((a,b)=> (b.descricao||'').localeCompare(a.descricao||''));
+      if (sort === 'ref_asc') list.sort((a,b)=> (a.referencia||'').localeCompare(b.referencia||''));
+      if (sort === 'ref_desc') list.sort((a,b)=> (b.referencia||'').localeCompare(a.referencia||''));
+      if (sort === 'qtd_desc') list.sort((a,b)=> (b.qtdreal||0) - (a.qtdreal||0));
+      if (sort === 'qtd_asc') list.sort((a,b)=> (a.qtdreal||0) - (b.qtdreal||0));
+    }
+
+    // render
+    if (!list || list.length===0){
+      tableWrap.innerHTML = '<div class="empty">Nenhum produto nesta visão.</div>';
+      return;
+    }
+
+    let html = '<table><thead><tr><th>Grupo</th><th>Referência</th><th>Descrição</th><th>Caracter</th><th class="right">Qtd</th><th class="right">Preço</th><th>Barra</th><th>NCM</th></tr></thead><tbody>';
+    list.forEach(p=>{
+      html += `<tr>
+        <td>${escapeHtml(p.grupo)}</td>
+        <td class="bold">${escapeHtml(p.referencia)}</td>
+        <td>${escapeHtml(p.descricao)}</td>
+        <td>${escapeHtml(p.caracter)}</td>
+        <td class="right bold">${(p.qtdreal||0).toFixed(2)}</td>
+        <td class="right">R$ ${(p.prc_venda||0).toFixed(2)}</td>
+        <td>${escapeHtml(p.barra)}</td>
+        <td>${escapeHtml(p.ncm)}</td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+    tableWrap.innerHTML = html;
+  }
+
+  // search / sort handlers
+  searchInput.addEventListener('input', ()=> renderTab(currentTab));
+  sortSelect.addEventListener('change', ()=> renderTab(currentTab));
+
+  // export current view
+  btnExportView.addEventListener('click', ()=>{
+    let list = [];
+    if (currentTab === 'acima10') list = buckets.acima10;
+    else if (currentTab === 'entre5_10') list = buckets.entre5_10;
+    else if (currentTab === 'entre1_5') list = buckets.entre1_5;
+    else if (currentTab === 'zerados') list = buckets.zerados;
+    else list = buckets.todas;
+
+    // apply same filters
+    const q = (searchInput.value||'').trim().toLowerCase();
+    if (q) list = list.filter(p=> (p.referencia+' '+p.descricao+' '+p.ncm+' '+p.grupo).toLowerCase().includes(q));
+
+    if (!list || list.length===0) return alert('Nada para exportar');
+    const rows = ['Grupo,Referência,Descrição,Caracter,Quantidade,Preço Venda,Barra,NCM'];
+    list.forEach(p => rows.push(`"${p.grupo}","${p.referencia}","${p.descricao}","${p.caracter}",${p.qtdreal},${p.prc_venda},"${p.barra}","${p.ncm}"`));
+    const blob = new Blob(["\ufeff" + rows.join('\n')], {type:'text/csv;charset=utf-8;'});
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `produtos_${currentTab}.csv`; a.click();
+  });
+
+  // export all buckets
+  btnExportAll.addEventListener('click', ()=>{
+    if (!buckets.todas || buckets.todas.length===0) return alert('Nada para exportar');
+    const rows = ['Grupo,Referência,Descrição,Caracter,Quantidade,Preço Venda,Barra,NCM'];
+    buckets.todas.forEach(p => rows.push(`"${p.grupo}","${p.referencia}","${p.descricao}","${p.caracter}",${p.qtdreal},${p.prc_venda},"${p.barra}","${p.ncm}"`));
+    const blob = new Blob(["\ufeff" + rows.join('\n')], {type:'text/csv;charset=utf-8;'});
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `produtos_todas.csv`; a.click();
+  });
+
+  // auto tasks button
+  btnAutoTasks.addEventListener('click', ()=> {
+    // add common tasks
+    addTask('Verificar itens zerados e confirmar estoque');
+    addTask('Revisar produtos sem código de barras');
+    addTask('Revisar produtos sem NCM');
+    addTask('Revisar preços zerados');
+    alert('Tarefas inteligentes adicionadas ao checklist');
+  });
+
+  // initial load checklist
+  loadChecklist();
+
+  // expose minimal debug
+  window.__CLASSIF = { buckets, produtos };
+
+})();
 </script>
 
 </body>
