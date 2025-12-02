@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Classificador de Estoque</title>
+
+    <!-- SheetJS XLSX -->
+    <script type="module">
+        import * as XLSX from "https://cdn.sheetjs.com/xlsx-0.20.1/package/xlsx.mjs";
+        window.XLSX = XLSX;
+    </script>
+
+    <style>
+        /* ---------------------------
+           ESTILOS GERAIS DO LAYOUT
+        ------------------------------ */
+        body {
+            font-family: Arial, sans-serif;
+            background: #f3f4f6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        .card {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 26px;
+            color: #1e293b;
+        }
+
+        .btn-upload {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: #2563eb;
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-upload:hover {
+            background: #1d4ed8;
+        }
+
+        .error-box {
+            margin-top: 16px;
+            padding: 10px;
+            background: #fee2e2;
+            border: 1px solid #fecaca;
+            color: #b91c1c;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .show { display: block !important; }
+
+        /* ---- CARDS RESUMO ---- */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+        }
+
+        .stat-card {
+            display: flex;
+            justify-content: space-between;
+            padding: 16px;
+            border-left: 5px solid;
+            border-radius: 8px;
+            background: #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .green { border-color: #10b981; }
+        .blue { border-color: #3b82f6; }
+        .yellow { border-color: #f59e0b; }
+        .red { border-color: #ef4444; }
+
+        .stat-title { color: #64748b; }
+        .stat-number { font-size: 28px; font-weight: bold; }
+
+        /* ---- ABAS ---- */
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #e5e7eb;
+            overflow-x: auto;
+            gap: 6px;
+        }
+
+        .tab {
+            padding: 12px 20px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-weight: bold;
+            color: #475569;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab.active { border-color: #2563eb; color: #2563eb; }
+
+        .badge {
+            background: #e2e8f0;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-left: 6px;
+        }
+
+        /* ---- TABELA ---- */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+
+        th {
+            text-align: left;
+            padding: 10px;
+            background: #f1f5f9;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        tr:hover { background: #f8fafc; }
+
+        .right { text-align: right; }
+        .bold { font-weight: bold; }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 0;
+            color: #94a3b8;
+        }
+
+        .btn-export {
+            background: #10b981;
+            color: #fff;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .btn-export:hover {
+            background: #059669;
+        }
+
+        .hidden { display: none; }
+    </style>
+</head>
+
+<body>
+<div class="container">
+
+    <!-- HEADER -->
+    <div class="card">
+        <h1>📦 Classificador de Produtos por Estoque</h1>
+
+        <label class="btn-upload">
+            📁 Carregar Arquivo
+            <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display:none" />
+        </label>
+
+        <div id="errorBox" class="error-box"></div>
+    </div>
+
+    <!-- CARDS -->
+    <div id="statsGrid" class="stats-grid hidden">
+        <div class="stat-card green">
+            <div><p class="stat-title">Acima de 10</p><p id="count-acima10" class="stat-number">0</p></div>📈
+        </div>
+        <div class="stat-card blue">
+            <div><p class="stat-title">Entre 5-10</p><p id="count-entre5_10" class="stat-number">0</p></div>📦
+        </div>
+        <div class="stat-card yellow">
+            <div><p class="stat-title">Entre 1-5</p><p id="count-entre1_5" class="stat-number">0</p></div>⚠️
+        </div>
+        <div class="stat-card red">
+            <div><p class="stat-title">Zerados (≤1)</p><p id="count-zerados" class="stat-number">0</p></div>📉
+        </div>
+    </div>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <div id="contentCard" class="card hidden">
+
+        <!-- ABAS -->
+        <div class="tabs">
+            <button class="tab active" data-tab="acima10">📈 Acima de 10 <span id="badge-acima10" class="badge">0</span></button>
+            <button class="tab" data-tab="entre5_10">📦 Entre 5-10 <span id="badge-entre5_10" class="badge">0</span></button>
+            <button class="tab" data-tab="entre1_5">⚠️ Entre 1-5 <span id="badge-entre1_5" class="badge">0</span></button>
+            <button class="tab" data-tab="zerados">📉 Zerados <span id="badge-zerados" class="badge">0</span></button>
+        </div>
+
+        <!-- EXPORTAÇÃO -->
+        <div style="margin-top: 12px;">
+            <button class="btn-export" id="btnExport">⬇️ Exportar CSV</button>
+        </div>
+
+        <!-- TABELA -->
+        <div id="tableContainer"></div>
+    </div>
+
+    <!-- ESTADO INICIAL -->
+    <div id="emptyState" class="card">
+        <div class="empty-state">
+            ☁️<br><br>
+            Carregue seu arquivo para começar.<br><br>
+            <small>O sistema classifica automaticamente os produtos pelo estoque.</small>
+        </div>
+    </div>
+
+</div>
+
+<script>
+/* -----------------------------------------------------
+   FUNÇÕES DE NORMALIZAÇÃO
+----------------------------------------------------- */
+function normalizarNome(str) {
+    return String(str)
+        .toLowerCase()
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .replace(/\s+/g, "")
+        .replace(/_/g, "")
+        .trim();
+}
+
+function detectarCabecalho(sheetJson) {
+    for (let i = 0; i < sheetJson.length; i++) {
+        const row = sheetJson[i];
+        const nomes = Object.values(row).map(normalizarNome);
+        const indic = ["grupo","ref","referencia","descricao","qtd","qtdreal"];
+        const score = nomes.filter(n => indic.some(x => n.includes(x))).length;
+        if (score >= 2) return i;
+    }
+    return 0;
+}
+
+function acharColuna(obj, termos) {
+    for (let k in obj) {
+        const nk = normalizarNome(k);
+        if (termos.some(t => nk.includes(t))) return k;
+    }
+    return null;
+}
+
+/* -----------------------------------------------------
+   VARIÁVEIS GLOBAIS
+----------------------------------------------------- */
+var dados = {};
+var abaAtiva = "acima10";
+
+/* -----------------------------------------------------
+   EVENTOS
+----------------------------------------------------- */
+document.getElementById("fileInput").addEventListener("change", processarArquivo);
+document.getElementById("btnExport").addEventListener("click", exportarCSV);
+
+document.querySelectorAll(".tab").forEach(tab =>
+    tab.addEventListener("click", () => mostrarAba(tab.dataset.tab))
+);
+
+/* -----------------------------------------------------
+   PROCESSAR ARQUIVO
+----------------------------------------------------- */
+function processarArquivo(e) {
+    const arquivo = e.target.files[0];
+    if (!arquivo) return;
+
+    const reader = new FileReader();
+
+    reader.onload = function(event) {
+        try {
+            let json = [];
+
+            if (arquivo.name.endsWith(".xlsx") || arquivo.name.endsWith(".xls")) {
+                const data = new Uint8Array(event.target.result);
+                const wb = XLSX.read(data, { type: "array" });
+                const sheet = wb.Sheets[wb.SheetNames[0]];
+
+                const arr = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+                const headerIndex = detectarCabecalho(
+                    arr.map(r => Object.fromEntries(r.map((v,i)=>[i,v])))
+                );
+
+                const headers = arr[headerIndex];
+                const rows    = arr.slice(headerIndex + 1);
+
+                json = rows.map(r => {
+                    const obj = {};
+                    headers.forEach((h, i) => obj[normalizarNome(h)] = r[i]);
+                    return obj;
+                });
+
+            } else {
+                const txt = event.target.result;
+                const linhas = txt.split("\n").filter(l => l.trim());
+
+                const headers = linhas[0].split(/[,;\t]/);
+                const rows = linhas.slice(1);
+
+                json = rows.map(l => {
+                    const c = l.split(/[,;\t]/);
+                    const obj = {};
+                    headers.forEach((h, i) => obj[normalizarNome(h)] = c[i]);
+                    return obj;
+                });
+            }
+
+            processarProdutos(json);
+
+        } catch (err) {
+            showError("Erro ao processar arquivo: " + err.message);
+        }
+    };
+
+    if (arquivo.name.endsWith(".xlsx") || arquivo.name.endsWith(".xls"))
+        reader.readAsArrayBuffer(arquivo);
+    else
+        reader.readAsText(arquivo);
+}
+
+/* -----------------------------------------------------
+   PROCESSAR PRODUTOS
+----------------------------------------------------- */
+function processarProdutos(json) {
+    const exemplo = json[0] || {};
+
+    const colGrupo = acharColuna(exemplo, ["grupo"]);
+    const colRef = acharColuna(exemplo, ["ref","referencia","codigo"]);
+    const colDesc = acharColuna(exemplo, ["descricao","desc"]);
+    const colCar = acharColuna(exemplo, ["caracter"]);
+    const colQtd = acharColuna(exemplo, ["qtdreal","quantidade","qtd","saldo"]);
+    const colVenda = acharColuna(exemplo, ["prcvenda","precovenda","venda"]);
+    const colBarra = acharColuna(exemplo, ["barra","ean"]);
+    const colNcm = acharColuna(exemplo, ["ncm"]);
+
+    if (!colRef || !colQtd) {
+        showError("As colunas obrigatórias 'referencia' e 'qtdreal' não foram encontradas.");
+        console.log("Cabeçalho detectado:", Object.keys(exemplo));
+        return;
+    }
+
+    const produtos = json.map(l => ({
+        grupo: String(l[colGrupo] || "").trim(),
+        referencia: String(l[colRef] || "").trim(),
+        descricao: String(l[colDesc] || "").trim(),
+        caracter: String(l[colCar] || "").trim(),
+        qtdreal: parseFloat(String(l[colQtd] || "0").replace(",", ".")) || 0,
+        prc_venda: parseFloat(String(l[colVenda] || "0").replace(",", ".")) || 0,
+        barra: String(l[colBarra] || "").trim(),
+        ncm: String(l[colNcm] || "").trim()
+    }));
+
+    dados = {
+        acima10: produtos.filter(p => p.qtdreal > 10),
+        entre5_10: produtos.filter(p => p.qtdreal > 5 && p.qtdreal <= 10),
+        entre1_5: produtos.filter(p => p.qtdreal > 1 && p.qtdreal <= 5),
+        zerados: produtos.filter(p => p.qtdreal <= 1)
+    };
+
+    atualizarInterface();
+}
+
+/* -----------------------------------------------------
+   INTERFACE
+----------------------------------------------------- */
+function atualizarInterface() {
+    document.getElementById("emptyState").classList.add("hidden");
+    document.getElementById("statsGrid").classList.remove("hidden");
+    document.getElementById("contentCard").classList.remove("hidden");
+
+    for (let cat in dados) {
+        document.getElementById("count-" + cat).textContent = dados[cat].length;
+        document.getElementById("badge-" + cat).textContent = dados[cat].length;
+    }
+
+    mostrarAba("acima10");
+}
+
+function mostrarAba(cat) {
+    abaAtiva = cat;
+
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    document.querySelector(`[data-tab="${cat}"]`).classList.add("active");
+
+    renderTabela(cat);
+}
+
+function renderTabela(cat) {
+    const container = document.getElementById("tableContainer");
+    const produtos = dados[cat];
+
+    if (!produtos || produtos.length === 0) {
+        container.innerHTML = "<div class='empty-state'>Nenhum produto nesta categoria.</div>";
+        return;
+    }
+
+    let html = `
+        <table>
+            <thead>
+                <tr>
+                    <th>Grupo</th>
+                    <th>Referência</th>
+                    <th>Descrição</th>
+                    <th>Caracter</th>
+                    <th class="right">Qtd Real</th>
+                    <th class="right">Preço Venda</th>
+                    <th>Barra</th>
+                    <th>NCM</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    produtos.forEach(p => {
+        html += `
+            <tr>
+                <td>${p.grupo}</td>
+                <td class="bold">${p.referencia}</td>
+                <td>${p.descricao}</td>
+                <td>${p.caracter}</td>
+                <td class="right bold">${p.qtdreal.toFixed(2)}</td>
+                <td class="right bold">R$ ${p.prc_venda.toFixed(2)}</td>
+                <td>${p.barra}</td>
+                <td>${p.ncm}</td>
+            </tr>
+        `;
+    });
+
+    html += "</tbody></table>";
+    container.innerHTML = html;
+}
+
+/* -----------------------------------------------------
+   EXPORTAR CSV
+----------------------------------------------------- */
+function exportarCSV() {
+    if (!dados[abaAtiva]) return;
+
+    const linhas = [
+        "Grupo,Referência,Descrição,Caracter,Quantidade,Preço Venda,Barra,NCM"
+    ];
+
+    dados[abaAtiva].forEach(p => {
+        linhas.push(
+            `"${p.grupo}","${p.referencia}","${p.descricao}","${p.caracter}",${p.qtdreal},${p.prc_venda},"${p.barra}","${p.ncm}"`
+        );
+    });
+
+    const csv = linhas.join("\n");
+    const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
+
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "produtos_" + abaAtiva + ".csv";
+    link.click();
+}
+
+/* -----------------------------------------------------
+   ERROS
+----------------------------------------------------- */
+function showError(msg) {
+    const box = document.getElementById("errorBox");
+    box.textContent = msg;
+    box.classList.add("show");
+}
+</script>
+
+</body>
+</html>
