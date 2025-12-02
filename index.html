@@ -1,693 +1,100 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Classificador & Checklist de Estoque — Dark</title>
+    <meta charset="UTF-8" />
+    <title>Gestor de Estoque – Dark Mode</title>
+    <link rel="stylesheet" href="style.css" />
 
-<!-- SheetJS as module -->
-<script type="module">
-  import * as XLSX from "https://cdn.sheetjs.com/xlsx-0.20.1/package/xlsx.mjs";
-  window.SheetJS = XLSX;
-</script>
-
-<style>
-  :root{
-    --bg:#0b1220;
-    --card:#0f1724;
-    --muted:#94a3b8;
-    --text:#e6eef8;
-    --accent:#60a5fa;
-    --accent-2:#34d399;
-    --danger:#fb7185;
-    --glass: rgba(255,255,255,0.03);
-    --surface:#0b1220;
-    --border: rgba(255,255,255,0.04);
-  }
-
-  *{box-sizing:border-box}
-  body{
-    margin:0;
-    font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-    background: linear-gradient(180deg,var(--bg), #071022 140%);
-    color:var(--text);
-    -webkit-font-smoothing:antialiased;
-    -moz-osx-font-smoothing:grayscale;
-    padding:22px;
-  }
-
-  .container{max-width:1200px;margin:0 auto;}
-
-  .card{
-    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-    border:1px solid var(--border);
-    padding:18px;border-radius:12px;margin-bottom:18px;box-shadow:0 6px 18px rgba(2,6,23,0.6)
-  }
-
-  header h1{display:flex;gap:12px;align-items:center;font-size:22px;margin:0}
-  .muted{color:var(--muted);font-size:13px}
-
-  .top-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-  .btn{
-    background:linear-gradient(180deg,var(--accent),#3b82f6);
-    color:#04203a;border:none;padding:10px 14px;border-radius:10px;font-weight:700;cursor:pointer;display:inline-flex;gap:8px;align-items:center;
-    box-shadow:0 4px 14px rgba(59,130,246,0.15);
-  }
-  .btn:disabled{opacity:.5;cursor:not-allowed}
-
-  input[type=file]{display:none}
-
-  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:14px}
-  .stat{background:var(--card);padding:14px;border-radius:10px;border-left:4px solid var(--border);display:flex;justify-content:space-between;align-items:center}
-  .stat h4{margin:0;font-size:13px;color:var(--muted)}
-  .stat p{margin:0;font-weight:800;font-size:20px}
-
-  .tabs{display:flex;gap:8px;margin-top:14px;border-bottom:1px solid var(--border);padding-bottom:8px;overflow:auto}
-  .tab{background:transparent;border:none;color:var(--muted);padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:700}
-  .tab.active{color:var(--text);background:var(--glass);border:1px solid rgba(255,255,255,0.03)}
-
-  .toolbar{display:flex;gap:8px;align-items:center;margin-top:12px}
-  .btn-ghost{background:transparent;border:1px dashed rgba(255,255,255,0.04);color:var(--muted);padding:8px 10px;border-radius:8px;cursor:pointer}
-
-  .table-wrap{overflow:auto;margin-top:14px;border-radius:8px}
-  table{width:100%;border-collapse:collapse;font-size:14px}
-  thead th{background:rgba(255,255,255,0.02);text-align:left;padding:10px;border-bottom:1px solid var(--border);font-weight:800;color:var(--muted)}
-  tbody td{padding:10px;border-bottom:1px solid rgba(255,255,255,0.02)}
-  .right{text-align:right}
-  .bold{font-weight:700;color:var(--text)}
-
-  .empty{padding:30px;text-align:center;color:var(--muted)}
-
-  /* Checklist */
-  .checklist{display:flex;gap:12px;flex-direction:column}
-  .check-item{display:flex;gap:8px;align-items:center;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.02)}
-  .check-item input{transform:scale(1.2);margin-right:6px}
-  .check-actions{display:flex;gap:8px;margin-top:10px}
-
-  /* Alerts */
-  .alerts{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
-  .alert-card{background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.02);display:flex;justify-content:space-between;align-items:center}
-  .alert-card .left{display:flex;flex-direction:column}
-  .alert-card .btn-small{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:6px 8px;border-radius:8px;color:var(--muted);cursor:pointer}
-
-  /* Search/filter */
-  .filters{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-  .input{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:8px 10px;border-radius:8px;color:var(--text);min-width:200px}
-
-  /* small helpers */
-  .muted-sm{color:var(--muted);font-size:13px}
-  .pill{padding:6px 10px;border-radius:999px;background:rgba(255,255,255,0.02);font-weight:700;color:var(--muted)}
-  .footer-note{font-size:13px;color:var(--muted);margin-top:8px}
-  @media (max-width:900px){
-    .grid{grid-template-columns:repeat(2,1fr)}
-  }
-  @media (max-width:560px){
-    .grid{grid-template-columns:1fr}
-    .tabs{flex-wrap:wrap}
-  }
-</style>
+    <!-- SheetJS (XLSX) -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 </head>
 
 <body>
-  <div class="container">
-    <!-- Header -->
-    <div class="card" id="headerCard">
-      <header style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
-        <div>
-          <h1>📦 Classificador & Checklist do Estoque — Dark</h1>
-          <div class="muted">Importe planilhas (.xlsx / .csv) e gere tarefas automáticas do estoque</div>
+    <header class="topbar">
+        <h1>📦 Gestor de Estoque – Dark Mode</h1>
+        <div class="topbar-actions">
+            <button id="btnExportBase">💾 Exportar Base</button>
+            <button id="btnImportBase">📁 Importar Base</button>
+            <input type="file" id="inputImportBase" accept=".json" hidden>
         </div>
+    </header>
 
-        <div style="display:flex;gap:10px;align-items:center">
-          <label class="btn">
-            📁 Carregar Arquivo
-            <input id="fileInput" type="file" accept=".xlsx,.xls,.csv" />
-          </label>
+    <main class="layout">
 
-          <button id="btnExportAll" class="btn" title="Exportar tudo" disabled>⬇️ Exportar Tudo</button>
-        </div>
-      </header>
-    </div>
+        <!-- Painel lateral de tarefas -->
+        <aside class="sidebar">
+            <h2>📝 Checklist Inteligente</h2>
+            <ul id="taskList"></ul>
 
-    <!-- Stats + Alerts -->
-    <div class="card">
-      <div class="top-row" style="justify-content:space-between">
-        <div style="flex:1">
-          <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-            <div class="muted-sm">Status:</div>
-            <div id="statusPill" class="pill">Aguardando arquivo</div>
-            <div class="muted-sm" id="rowCount">0 linhas lidas</div>
-          </div>
-
-          <div class="grid" style="margin-top:12px">
-            <div class="stat">
-              <div>
-                <h4>Acima de 10</h4>
-                <p id="countAcima10">0</p>
-              </div>
-              <div>📈</div>
-            </div>
-            <div class="stat">
-              <div>
-                <h4>Entre 5–10</h4>
-                <p id="count5_10">0</p>
-              </div>
-              <div>📦</div>
-            </div>
-            <div class="stat">
-              <div>
-                <h4>Entre 1–5</h4>
-                <p id="count1_5">0</p>
-              </div>
-              <div>⚠️</div>
-            </div>
-            <div class="stat">
-              <div>
-                <h4>Zerados (≤1)</h4>
-                <p id="countZerados">0</p>
-              </div>
-              <div>📉</div>
-            </div>
-          </div>
-        </div>
-
-        <div style="width:360px">
-          <h4 style="margin:0 0 8px 0">Tarefas Inteligentes</h4>
-          <div class="alerts" id="alertsArea">
-            <!-- alert cards injected here -->
-          </div>
-        </div>
-      </div>
-
-      <div class="footer-note">Dica: clique em um alerta para ver os itens e marcar tarefas automaticamente.</div>
-    </div>
-
-    <!-- Main content -->
-    <div class="card" id="mainCard" style="display:block">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
-        <div style="flex:1;min-width:320px">
-          <div class="tabs" id="tabs">
-            <button class="tab active" data-tab="acima10">📈 Acima de 10 <span class="pill" id="badgeAcima10">0</span></button>
-            <button class="tab" data-tab="entre5_10">📦 Entre 5–10 <span class="pill" id="badge5_10">0</span></button>
-            <button class="tab" data-tab="entre1_5">⚠️ Entre 1–5 <span class="pill" id="badge1_5">0</span></button>
-            <button class="tab" data-tab="zerados">📉 Zerados <span class="pill" id="badgeZerados">0</span></button>
-            <button class="tab" data-tab="todas">📋 Todas <span class="pill" id="badgeTodas">0</span></button>
-          </div>
-
-          <div class="toolbar" style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-            <input id="searchInput" class="input" placeholder="Buscar por referência, descrição, NCM..." />
-            <select id="sortSelect" class="input">
-              <option value="">Ordenar</option>
-              <option value="desc_asc">Descrição A–Z</option>
-              <option value="desc_desc">Descrição Z–A</option>
-              <option value="ref_asc">Referência A–Z</option>
-              <option value="ref_desc">Referência Z–A</option>
-              <option value="qtd_desc">Qtd — Maior primeiro</option>
-              <option value="qtd_asc">Qtd — Menor primeiro</option>
-            </select>
-
-            <button id="btnExport" class="btn-ghost" title="Exportar view atual" disabled>⬇ Exportar Visão</button>
-            <button id="btnAutoTasks" class="btn-ghost" title="Gerar tarefas automaticamente">⚙️ Gerar Tarefas</button>
-          </div>
-
-          <div class="table-wrap" id="tableWrap" style="margin-top:12px">
-            <!-- table rendered here -->
-            <div class="empty" id="tableEmpty">Carregue um arquivo para ver produtos.</div>
-          </div>
-        </div>
-
-        <!-- Checklist -->
-        <aside style="width:320px">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-            <h3 style="margin:0">Checklist</h3>
-            <div class="muted-sm">Salvo no navegador</div>
-          </div>
-
-          <div class="card" style="padding:12px">
-            <div class="checklist" id="checklist">
-              <!-- check items here -->
-            </div>
-
-            <div class="check-actions">
-              <button id="btnAddTask" class="btn-ghost">+ Adicionar tarefa</button>
-              <button id="btnClearTasks" class="btn-ghost">Limpar</button>
-            </div>
-          </div>
+            <h2 style="margin-top:30px;">⚡ Alertas Inteligentes</h2>
+            <ul id="alertList"></ul>
         </aside>
-      </div>
-    </div>
 
-    <!-- Debug & footer -->
-    <div class="card">
-      <details open style="color:var(--muted)">
-        <summary style="cursor:pointer">📋 DEBUG / Informações</summary>
-        <div style="margin-top:8px">
-          <div class="muted-sm">Headers detectados: <span id="detHeaders">—</span></div>
-          <div class="muted-sm">Logs: <span id="logArea">—</span></div>
+        <!-- Conteúdo -->
+        <section class="content">
+
+            <div class="upload-box">
+                <label class="file-btn">
+                    📁 Importar Planilha
+                    <input type="file" id="inputFile" accept=".xlsx,.xls,.csv" hidden />
+                </label>
+                <span class="hint">Aceita XLSX, XLS e CSV</span>
+            </div>
+
+            <!-- Contadores -->
+            <div class="stats" id="stats"></div>
+
+            <!-- Abas -->
+            <div class="tabs" id="tabs"></div>
+
+            <!-- Tabela -->
+            <div class="table-area">
+                <table id="table">
+                    <thead id="tableHead"></thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+
+            <div id="emptyMsg" class="empty-msg">Nenhum item nesta categoria.</div>
+
+        </section>
+    </main>
+
+    <!-- Modal de Edição -->
+    <div class="modal" id="editModal">
+        <div class="modal-content">
+            <h2>🔧 Editar Item</h2>
+
+            <form id="editForm">
+                <label>Descrição:</label>
+                <input type="text" id="editDescricao">
+
+                <label>Preço Venda:</label>
+                <input type="number" step="0.01" id="editPreco">
+
+                <label>Quantidade Real:</label>
+                <input type="number" step="0.01" id="editQtd">
+
+                <label>Código de Barras:</label>
+                <input type="text" id="editBarra">
+
+                <label>NCM:</label>
+                <input type="text" id="editNcm">
+
+                <label>Notas Internas:</label>
+                <textarea id="editNotas"></textarea>
+
+                <div class="modal-actions">
+                    <button type="button" id="btnSalvarEdicao">Salvar</button>
+                    <button type="button" id="btnFecharModal">Fechar</button>
+                </div>
+            </form>
+
+            <h3>📚 Histórico</h3>
+            <div class="history" id="historyBox"></div>
         </div>
-      </details>
     </div>
 
-  </div>
-
-<script>
-/* ======================================================
-   App JS: leitura XLSX/CSV, classificação, tasks, checklist
-   ====================================================== */
-
-(async function(){
-
-  // helpers
-  const $ = s => document.querySelector(s);
-  const $$ = s => Array.from(document.querySelectorAll(s));
-  const normalize = str => String(str||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'').replace(/_/g,'').trim();
-
-  // state
-  let rawJson = [];
-  let produtos = []; // normalized objects
-  let buckets = {acima10:[],entre5_10:[],entre1_5:[],zerados:[],todas:[]};
-  let currentTab = 'acima10';
-  let detectedHeaders = [];
-  let checklist = []; // {id,text,done}
-  const STORAGE_KEY = 'classif_checklist_v1';
-
-  // elements
-  const fileInput = $('#fileInput');
-  const statusPill = $('#statusPill');
-  const rowCountEl = $('#rowCount');
-  const detHeadersEl = $('#detHeaders');
-  const logArea = $('#logArea');
-  const alertsArea = $('#alertsArea');
-  const tableWrap = $('#tableWrap');
-  const tableEmpty = $('#tableEmpty');
-  const searchInput = $('#searchInput');
-  const sortSelect = $('#sortSelect');
-  const tabsEl = $('#tabs');
-  const btnExportView = $('#btnExport');
-  const btnExportAll = $('#btnExportAll');
-  const btnAutoTasks = $('#btnAutoTasks');
-
-  const checklistEl = $('#checklist');
-  const btnAddTask = $('#btnAddTask');
-  const btnClearTasks = $('#btnClearTasks');
-
-  // logging
-  function log(msg){
-    // show brief, also keep last text
-    logArea.textContent = msg;
-    //console.log(msg);
-  }
-
-  // load checklist from storage
-  function loadChecklist(){
-    try{
-      const raw = localStorage.getItem(STORAGE_KEY);
-      checklist = raw ? JSON.parse(raw) : [];
-    }catch(e){ checklist = [] }
-    renderChecklist();
-  }
-  function saveChecklist(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(checklist)); }
-
-  function addTask(text, done=false){
-    checklist.unshift({id:Date.now().toString(36), text, done});
-    saveChecklist();
-    renderChecklist();
-  }
-  function toggleTask(id){
-    checklist = checklist.map(t => t.id===id ? {...t, done: !t.done} : t);
-    saveChecklist(); renderChecklist();
-  }
-  function removeTask(id){
-    checklist = checklist.filter(t=>t.id!==id); saveChecklist(); renderChecklist();
-  }
-  function clearTasks(){ checklist = []; saveChecklist(); renderChecklist(); }
-
-  function renderChecklist(){
-    checklistEl.innerHTML = '';
-    if (checklist.length===0){
-      checklistEl.innerHTML = '<div class="muted-sm">Nenhuma tarefa ainda — crie uma</div>';
-      return;
-    }
-    checklist.forEach(item=>{
-      const div = document.createElement('div');
-      div.className = 'check-item';
-      div.innerHTML = `
-        <input type="checkbox" ${item.done?'checked':''} data-id="${item.id}" />
-        <div style="flex:1">${item.text}</div>
-        <button class="btn-ghost" data-del="${item.id}">Rem</button>
-      `;
-      checklistEl.appendChild(div);
-    });
-    // bind
-    $$('input[type=checkbox]', checklistEl).forEach(cb=>{
-      cb.addEventListener('change', e=>toggleTask(e.target.dataset.id));
-    });
-    $$('[data-del]', checklistEl).forEach(b=>b.addEventListener('click', e=>removeTask(e.target.dataset.del)));
-  }
-
-  btnAddTask.addEventListener('click', ()=> {
-    const txt = prompt('Descreva a tarefa:');
-    if (txt && txt.trim()) addTask(txt.trim(), false);
-  });
-  btnClearTasks.addEventListener('click', ()=> {
-    if (confirm('Remover todas as tarefas?')) clearTasks();
-  });
-
-  // file reading
-  fileInput.addEventListener('change', async (ev) => {
-    const f = ev.target.files[0];
-    if (!f) return;
-    resetState();
-    statusPill.textContent = 'Processando...';
-    try{
-      const SheetJS = window.SheetJS;
-      if (!SheetJS) throw new Error('SheetJS não carregado');
-      let json = [];
-      if (f.name.endsWith('.xlsx')||f.name.endsWith('.xls')) {
-        const data = await f.arrayBuffer();
-        const wb = SheetJS.read(new Uint8Array(data),{type:'array'});
-        const sheet = wb.Sheets[wb.SheetNames[0]];
-        const arr = SheetJS.utils.sheet_to_json(sheet, { header:1, defval:null });
-        log('Linhas: ' + arr.length);
-        // detect header row (within first 10)
-        let headerIndex = 0;
-        for (let i=0;i<Math.min(arr.length,10);i++){
-          const row = arr[i] || [];
-          const norm = row.map(c => normalize(String(c||'')));
-          const keys = ['grupo','referencia','ref','descricao','qtdreal','qtd'];
-          const score = norm.filter(n => keys.some(k=>n.includes(k))).length;
-          if (score >= 2) { headerIndex = i; break; }
-        }
-        const headers = (arr[headerIndex] || []).map(h => String(h||''));
-        const rows = arr.slice(headerIndex+1);
-        json = rows.map(r => {
-          const obj = {};
-          headers.forEach((h,idx)=> obj[String(h||'')]= r[idx] === undefined ? null : r[idx]);
-          return obj;
-        });
-        detectedHeaders = headers.map(h=>normalize(String(h||'')));
-        detHeadersEl.textContent = detectedHeaders.join(', ');
-        rowCountEl.textContent = rows.length + ' linhas lidas';
-      } else {
-        const txt = await f.text();
-        const lines = txt.split(/\r?\n/).filter(l=>l.trim());
-        const headers = lines[0].split(/[,;\t]/).map(h=>String(h||''));
-        const rows = lines.slice(1);
-        json = rows.map(r=>{
-          const cols = r.split(/[,;\t]/);
-          const obj = {};
-          headers.forEach((h,i)=> obj[String(h||'')] = cols[i] === undefined ? null : cols[i]);
-          return obj;
-        });
-        detectedHeaders = headers.map(h=>normalize(String(h||'')));
-        detHeadersEl.textContent = detectedHeaders.join(', ');
-        rowCountEl.textContent = rows.length + ' linhas lidas';
-      }
-
-      // normalize keys for processing
-      rawJson = json.map(row=>{
-        const o = {};
-        Object.keys(row || {}).forEach(k=>{
-          o[normalize(k)] = row[k];
-        });
-        return o;
-      });
-
-      // map columns
-      processRawToProdutos(rawJson);
-
-      statusPill.textContent = 'Pronto';
-    } catch(err){
-      statusPill.textContent = 'Erro';
-      alert('Erro lendo arquivo: ' + (err && err.message ? err.message : err));
-    }
-  });
-
-  function resetState(){
-    rawJson = []; produtos=[]; buckets={acima10:[],entre5_10:[],entre1_5:[],zerados:[],todas:[]};
-    tableWrap.innerHTML = ''; tableEmpty.style.display='block';
-    $('#countAcima10').textContent='0'; $('#count5_10').textContent='0';
-    $('#count1_5').textContent='0'; $('#countZerados').textContent='0';
-    $('#badgeAcima10').textContent='0'; $('#badge5_10').textContent='0';
-    $('#badge1_5').textContent='0'; $('#badgeZerados').textContent='0'; $('#badgeTodas').textContent='0';
-    alertsArea.innerHTML = ''; btnExportView.disabled = true; btnExportAll.disabled = true;
-  }
-
-  function findKey(obj, candidates){
-    for (const c of candidates){
-      for (const k in obj){
-        if (normalize(k).includes(c)) return k;
-      }
-    }
-    return null;
-  }
-
-  function processRawToProdutos(normalizedRows){
-    if (!normalizedRows || normalizedRows.length===0) {
-      alert('Sem dados na planilha.');
-      return;
-    }
-
-    const sample = normalizedRows[0];
-
-    const kGrupo = findKey(sample, ['grupo']);
-    const kRef = findKey(sample, ['referencia','ref','codigo']);
-    const kDesc = findKey(sample, ['descricao','desc']);
-    const kCaracter = findKey(sample, ['caracter']);
-    const kQtd = findKey(sample, ['qtdreal','qtd','quantidade','saldo']);
-    const kPrc = findKey(sample, ['prcvenda','precovenda','preco','valor']);
-    const kBarra = findKey(sample, ['barra','ean']);
-    const kNcm = findKey(sample, ['ncm']);
-
-    if (!kRef || !kQtd) {
-      alert("As colunas obrigatórias 'referencia' e 'qtdreal' não foram encontradas. Headers: " + Object.keys(sample).join(', '));
-      return;
-    }
-
-    produtos = normalizedRows.map(r => {
-      return {
-        grupo: String(r[kGrupo] || r['grupo'] || '') .trim(),
-        referencia: String(r[kRef] || r['referencia'] || r['ref'] || '') .trim(),
-        descricao: String(r[kDesc] || r['descricao'] || '') .trim(),
-        caracter: String(r[kCaracter] || r['caracter'] || '') .trim(),
-        qtdreal: parseFloat(String(r[kQtd] || r['qtdreal'] || 0).toString().replace(',','.')) || 0,
-        prc_venda: parseFloat(String(r[kPrc] || r['prcvenda'] || 0).toString().replace(',','.')) || 0,
-        barra: String(r[kBarra] || r['barra'] || '') .trim(),
-        ncm: String(r[kNcm] || r['ncm'] || '') .trim()
-      };
-    }).filter(p => p.referencia);
-
-    // build buckets
-    buckets = {acima10:[],entre5_10:[],entre1_5:[],zerados:[],todas:produtos.slice()};
-    produtos.forEach(p=>{
-      if (p.qtdreal > 10) buckets.acima10.push(p);
-      else if (p.qtdreal > 5 && p.qtdreal <=10) buckets.entre5_10.push(p);
-      else if (p.qtdreal >1 && p.qtdreal <=5) buckets.entre1_5.push(p);
-      else buckets.zerados.push(p);
-    });
-
-    // update counters
-    $('#countAcima10').textContent = buckets.acima10.length;
-    $('#count5_10').textContent = buckets.entre5_10.length;
-    $('#count1_5').textContent = buckets.entre1_5.length;
-    $('#countZerados').textContent = buckets.zerados.length;
-
-    $('#badgeAcima10').textContent = buckets.acima10.length;
-    $('#badge5_10').textContent = buckets.entre5_10.length;
-    $('#badge1_5').textContent = buckets.entre1_5.length;
-    $('#badgeZerados').textContent = buckets.zerados.length;
-    $('#badgeTodas').textContent = buckets.todas.length;
-
-    // generate alerts
-    generateAlerts();
-
-    // enable exports
-    btnExportView.disabled = false; btnExportAll.disabled=false;
-
-    // show default tab
-    renderTab(currentTab);
-  }
-
-  // Alerts generator
-  function generateAlerts(){
-    alertsArea.innerHTML = '';
-    const all = buckets.todas;
-    const priceZero = all.filter(p => (p.prc_venda === 0 || p.prc_venda === 0.0));
-    const noBar = all.filter(p => !p.barra || p.barra.trim()==='');
-    const noNcm = all.filter(p => !p.ncm || p.ncm.trim()==='');
-    const negStock = all.filter(p => p.qtdreal < 0);
-    // duplicates by referencia
-    const refMap = {}; all.forEach(p=>{ refMap[p.referencia] = (refMap[p.referencia]||0) + 1 });
-    const dupRefs = Object.keys(refMap).filter(k=>refMap[k]>1).map(k=> ({ref:k,count:refMap[k]}));
-    // duplicate descriptions
-    const descMap = {}; all.forEach(p=> { const d = p.descricao||''; descMap[d] = (descMap[d]||0)+1 });
-    const dupDesc = Object.keys(descMap).filter(k=>descMap[k]>1).map(k=> ({desc:k,count:descMap[k]}));
-
-    const alertDefs = [
-      {id:'priceZero', label:'Preço zerado', count:priceZero.length, list:priceZero},
-      {id:'noBar', label:'Sem código de barras', count:noBar.length, list:noBar},
-      {id:'noNcm', label:'Sem NCM', count:noNcm.length, list:noNcm},
-      {id:'negStock', label:'Estoque negativo', count:negStock.length, list:negStock},
-      {id:'dupRef', label:'Referências duplicadas', count:dupRefs.length, list:dupRefs},
-      {id:'dupDesc', label:'Descrições duplicadas', count:dupDesc.length, list:dupDesc}
-    ];
-
-    alertDefs.forEach(a=>{
-      const div = document.createElement('div');
-      div.className = 'alert-card';
-      div.innerHTML = `<div class="left"><strong style="font-size:14px">${a.label}</strong><div class="muted-sm">${a.count} itens</div></div>
-        <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
-          <button class="btn-small" data-alert="${a.id}">Ver</button>
-          <button class="btn-small" data-action="${a.id}">Marcar</button>
-        </div>`;
-      alertsArea.appendChild(div);
-      div.querySelector('[data-alert]').addEventListener('click', ()=> openAlertList(a));
-      div.querySelector('[data-action]').addEventListener('click', ()=> autoAddTasksForAlert(a));
-    });
-  }
-
-  function openAlertList(alertDef){
-    // render list in tableWrap
-    if (!alertDef || !alertDef.list) return;
-    const list = alertDef.list;
-    let html = `<div style="margin-bottom:8px"><strong>${alertDef.label}</strong> — ${alertDef.count} itens<button class="btn-ghost" style="float:right" onclick="document.getElementById('tableWrap').scrollIntoView()">Fechar</button></div>`;
-    html += '<div class="table-wrap"><table><thead><tr><th>Referência / Info</th><th>Qtd</th><th>Grupo</th><th>Descrição</th></tr></thead><tbody>';
-    // list may be objects or simple
-    list.forEach(it=>{
-      if (it && it.referencia){
-        html += `<tr><td class="bold">${escapeHtml(it.referencia)}</td><td class="right">${(it.qtdreal||0).toFixed(2)}</td><td>${escapeHtml(it.grupo)}</td><td>${escapeHtml(it.descricao)}</td></tr>`;
-      } else if (it && it.ref){
-        html += `<tr><td class="bold">${escapeHtml(it.ref)}</td><td>-</td><td>-</td><td>duplicada</td></tr>`;
-      } else if (it && it.desc){
-        html += `<tr><td class="bold">${escapeHtml(it.desc)}</td><td>-</td><td>-</td><td>descrição duplicada</td></tr>`;
-      }
-    });
-    html += '</tbody></table></div>';
-    tableWrap.innerHTML = html;
-  }
-
-  function autoAddTasksForAlert(alertDef){
-    if (!alertDef) return;
-    const label = alertDef.label;
-    addTask(`Revisar: ${label} — ${alertDef.count} itens`);
-    alert('Tarefa adicionada ao checklist');
-  }
-
-  // escaping
-  function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-  // tabs behavior
-  tabsEl.addEventListener('click', (e)=>{
-    const btn = e.target.closest('.tab');
-    if (!btn) return;
-    $$('.tab').forEach(t=>t.classList.remove('active'));
-    btn.classList.add('active');
-    const tab = btn.dataset.tab;
-    currentTab = tab;
-    renderTab(tab);
-  });
-
-  // render tab
-  function renderTab(tab){
-    let list = [];
-    if (tab === 'acima10') list = buckets.acima10;
-    else if (tab === 'entre5_10') list = buckets.entre5_10;
-    else if (tab === 'entre1_5') list = buckets.entre1_5;
-    else if (tab === 'zerados') list = buckets.zerados;
-    else list = buckets.todas;
-
-    // apply search filter
-    const q = (searchInput.value||'').trim().toLowerCase();
-    if (q) {
-      list = list.filter(p => (p.referencia + ' ' + p.descricao + ' ' + p.ncm + ' ' + p.grupo).toLowerCase().includes(q));
-    }
-
-    // sort
-    const sort = sortSelect.value;
-    if (sort) {
-      list = list.slice();
-      if (sort === 'desc_asc') list.sort((a,b)=> (a.descricao||'').localeCompare(b.descricao||''));
-      if (sort === 'desc_desc') list.sort((a,b)=> (b.descricao||'').localeCompare(a.descricao||''));
-      if (sort === 'ref_asc') list.sort((a,b)=> (a.referencia||'').localeCompare(b.referencia||''));
-      if (sort === 'ref_desc') list.sort((a,b)=> (b.referencia||'').localeCompare(a.referencia||''));
-      if (sort === 'qtd_desc') list.sort((a,b)=> (b.qtdreal||0) - (a.qtdreal||0));
-      if (sort === 'qtd_asc') list.sort((a,b)=> (a.qtdreal||0) - (b.qtdreal||0));
-    }
-
-    // render
-    if (!list || list.length===0){
-      tableWrap.innerHTML = '<div class="empty">Nenhum produto nesta visão.</div>';
-      return;
-    }
-
-    let html = '<table><thead><tr><th>Grupo</th><th>Referência</th><th>Descrição</th><th>Caracter</th><th class="right">Qtd</th><th class="right">Preço</th><th>Barra</th><th>NCM</th></tr></thead><tbody>';
-    list.forEach(p=>{
-      html += `<tr>
-        <td>${escapeHtml(p.grupo)}</td>
-        <td class="bold">${escapeHtml(p.referencia)}</td>
-        <td>${escapeHtml(p.descricao)}</td>
-        <td>${escapeHtml(p.caracter)}</td>
-        <td class="right bold">${(p.qtdreal||0).toFixed(2)}</td>
-        <td class="right">R$ ${(p.prc_venda||0).toFixed(2)}</td>
-        <td>${escapeHtml(p.barra)}</td>
-        <td>${escapeHtml(p.ncm)}</td>
-      </tr>`;
-    });
-    html += '</tbody></table>';
-    tableWrap.innerHTML = html;
-  }
-
-  // search / sort handlers
-  searchInput.addEventListener('input', ()=> renderTab(currentTab));
-  sortSelect.addEventListener('change', ()=> renderTab(currentTab));
-
-  // export current view
-  btnExportView.addEventListener('click', ()=>{
-    let list = [];
-    if (currentTab === 'acima10') list = buckets.acima10;
-    else if (currentTab === 'entre5_10') list = buckets.entre5_10;
-    else if (currentTab === 'entre1_5') list = buckets.entre1_5;
-    else if (currentTab === 'zerados') list = buckets.zerados;
-    else list = buckets.todas;
-
-    // apply same filters
-    const q = (searchInput.value||'').trim().toLowerCase();
-    if (q) list = list.filter(p=> (p.referencia+' '+p.descricao+' '+p.ncm+' '+p.grupo).toLowerCase().includes(q));
-
-    if (!list || list.length===0) return alert('Nada para exportar');
-    const rows = ['Grupo,Referência,Descrição,Caracter,Quantidade,Preço Venda,Barra,NCM'];
-    list.forEach(p => rows.push(`"${p.grupo}","${p.referencia}","${p.descricao}","${p.caracter}",${p.qtdreal},${p.prc_venda},"${p.barra}","${p.ncm}"`));
-    const blob = new Blob(["\ufeff" + rows.join('\n')], {type:'text/csv;charset=utf-8;'});
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `produtos_${currentTab}.csv`; a.click();
-  });
-
-  // export all buckets
-  btnExportAll.addEventListener('click', ()=>{
-    if (!buckets.todas || buckets.todas.length===0) return alert('Nada para exportar');
-    const rows = ['Grupo,Referência,Descrição,Caracter,Quantidade,Preço Venda,Barra,NCM'];
-    buckets.todas.forEach(p => rows.push(`"${p.grupo}","${p.referencia}","${p.descricao}","${p.caracter}",${p.qtdreal},${p.prc_venda},"${p.barra}","${p.ncm}"`));
-    const blob = new Blob(["\ufeff" + rows.join('\n')], {type:'text/csv;charset=utf-8;'});
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `produtos_todas.csv`; a.click();
-  });
-
-  // auto tasks button
-  btnAutoTasks.addEventListener('click', ()=> {
-    // add common tasks
-    addTask('Verificar itens zerados e confirmar estoque');
-    addTask('Revisar produtos sem código de barras');
-    addTask('Revisar produtos sem NCM');
-    addTask('Revisar preços zerados');
-    alert('Tarefas inteligentes adicionadas ao checklist');
-  });
-
-  // initial load checklist
-  loadChecklist();
-
-  // expose minimal debug
-  window.__CLASSIF = { buckets, produtos };
-
-})();
-</script>
-
+    <script src="app.js"></script>
 </body>
 </html>
