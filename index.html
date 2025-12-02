@@ -1,100 +1,241 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="light">
 <head>
     <meta charset="UTF-8" />
-    <title>Gestor de Estoque – Dark Mode</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Classificador de Produtos - Tuboluc</title>
+    <meta name="description" content="Sistema de classificação automática de produtos por estoque - Tuboluc">
+    
+    <!-- CSS -->
     <link rel="stylesheet" href="style.css" />
-
-    <!-- SheetJS (XLSX) -->
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📦</text></svg>">
+    
+    <!-- SheetJS XLSX -->
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    
+    <!-- Google Fonts Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 
 <body>
-    <header class="topbar">
-        <h1>📦 Gestor de Estoque – Dark Mode</h1>
-        <div class="topbar-actions">
-            <button id="btnExportBase">💾 Exportar Base</button>
-            <button id="btnImportBase">📁 Importar Base</button>
-            <input type="file" id="inputImportBase" accept=".json" hidden>
-        </div>
-    </header>
+    <div class="app-container">
+        <!-- HEADER -->
+        <header class="header">
+            <h1 class="title">Classificador de Produtos – Tuboluc</h1>
+            
+            <!-- Botão tema -->
+            <button id="toggleTheme" class="theme-btn" aria-label="Alternar tema claro/escuro">
+                <span class="theme-icon">🌓</span>
+                <span class="theme-text">Alternar Tema</span>
+            </button>
+        </header>
 
-    <main class="layout">
+        <!-- UPLOAD -->
+        <section class="card upload-card" id="uploadSection">
+            <label class="upload-label" for="fileInput">
+                <span class="upload-icon">📁</span>
+                <span class="upload-text">Carregar Arquivo</span>
+            </label>
+            
+            <input
+                id="fileInput"
+                class="input-hidden"
+                type="file"
+                accept=".xlsx,.xls,.csv"
+                aria-label="Selecionar arquivo Excel ou CSV"
+            />
+            
+            <p class="upload-info">
+                Formatos aceitos: <strong>XLSX</strong>, <strong>XLS</strong> ou <strong>CSV</strong>
+                <br>
+                <small>Os dados são processados localmente no seu navegador</small>
+            </p>
+            
+            <!-- ERRO -->
+            <div id="errorBox" class="error-box" role="alert"></div>
+        </section>
 
-        <!-- Painel lateral de tarefas -->
-        <aside class="sidebar">
-            <h2>📝 Checklist Inteligente</h2>
-            <ul id="taskList"></ul>
-
-            <h2 style="margin-top:30px;">⚡ Alertas Inteligentes</h2>
-            <ul id="alertList"></ul>
-        </aside>
-
-        <!-- Conteúdo -->
-        <section class="content">
-
-            <div class="upload-box">
-                <label class="file-btn">
-                    📁 Importar Planilha
-                    <input type="file" id="inputFile" accept=".xlsx,.xls,.csv" hidden />
-                </label>
-                <span class="hint">Aceita XLSX, XLS e CSV</span>
+        <!-- STATS -->
+        <section id="statsSection" class="stats hidden">
+            <div class="stat stat-green">
+                <span class="stat-label">📈 Acima de 10</span>
+                <span id="count_acima10" class="stat-value">0</span>
+                <small class="stat-sub">Estoque elevado</small>
             </div>
+            
+            <div class="stat stat-blue">
+                <span class="stat-label">📦 Entre 5–10</span>
+                <span id="count_entre5_10" class="stat-value">0</span>
+                <small class="stat-sub">Estoque médio</small>
+            </div>
+            
+            <div class="stat stat-yellow">
+                <span class="stat-label">⚠️ Entre 1–5</span>
+                <span id="count_entre1_5" class="stat-value">0</span>
+                <small class="stat-sub">Estoque baixo</small>
+            </div>
+            
+            <div class="stat stat-red">
+                <span class="stat-label">📉 Zerados (≤1)</span>
+                <span id="count_zerados" class="stat-value">0</span>
+                <small class="stat-sub">Necessita reposição</small>
+            </div>
+        </section>
 
-            <!-- Contadores -->
-            <div class="stats" id="stats"></div>
+        <!-- FILTROS -->
+        <section id="filterSection" class="filters hidden">
+            <div class="filter-group">
+                <label for="searchInput" class="filter-label">
+                    <span class="filter-icon">🔍</span>
+                    Buscar item:
+                </label>
+                <input
+                    id="searchInput"
+                    type="text"
+                    class="filter-input"
+                    placeholder="Digite referência, descrição ou NCM..."
+                    aria-label="Campo de busca por produtos"
+                />
+            </div>
+            
+            <div class="filter-group">
+                <label for="sortSelect" class="filter-label">
+                    <span class="filter-icon">📊</span>
+                    Ordenar por:
+                </label>
+                <select id="sortSelect" class="filter-input" aria-label="Ordenar tabela">
+                    <option value="descricao">Descrição (A → Z)</option>
+                    <option value="descricao_desc">Descrição (Z → A)</option>
+                    <option value="quantidade">Quantidade (Maior → Menor)</option>
+                    <option value="quantidade_desc">Quantidade (Menor → Maior)</option>
+                    <option value="preco">Preço (Maior → Menor)</option>
+                    <option value="preco_desc">Preço (Menor → Maior)</option>
+                    <option value="referencia">Referência</option>
+                </select>
+            </div>
+            
+            <button id="resetFilters" class="btn btn-secondary" aria-label="Limpar filtros aplicados">
+                <span class="btn-icon">🔄</span>
+                <span class="btn-text">Limpar Filtros</span>
+            </button>
+        </section>
 
-            <!-- Abas -->
-            <div class="tabs" id="tabs"></div>
+        <!-- ABAS -->
+        <section id="tabsSection" class="tabs-section hidden" role="tablist">
+            <button class="tab tab-active" role="tab" aria-selected="true" data-tab="todos">
+                <span class="tab-icon">🌟</span>
+                <span class="tab-text">Todos os Itens</span>
+                <span id="badge_todos" class="badge">0</span>
+            </button>
+            
+            <button class="tab" role="tab" aria-selected="false" data-tab="acima10">
+                <span class="tab-icon">📈</span>
+                <span class="tab-text">Acima de 10</span>
+                <span id="badge_acima10" class="badge">0</span>
+            </button>
+            
+            <button class="tab" role="tab" aria-selected="false" data-tab="entre5_10">
+                <span class="tab-icon">📦</span>
+                <span class="tab-text">Entre 5–10</span>
+                <span id="badge_entre5_10" class="badge">0</span>
+            </button>
+            
+            <button class="tab" role="tab" aria-selected="false" data-tab="entre1_5">
+                <span class="tab-icon">⚠️</span>
+                <span class="tab-text">Entre 1–5</span>
+                <span id="badge_entre1_5" class="badge">0</span>
+            </button>
+            
+            <button class="tab" role="tab" aria-selected="false" data-tab="zerados">
+                <span class="tab-icon">📉</span>
+                <span class="tab-text">Zerados</span>
+                <span id="badge_zerados" class="badge">0</span>
+            </button>
+        </section>
 
-            <!-- Tabela -->
-            <div class="table-area">
-                <table id="table">
-                    <thead id="tableHead"></thead>
-                    <tbody id="tableBody"></tbody>
+        <!-- EXPORTAÇÃO -->
+        <section id="exportSection" class="export-section hidden">
+            <button id="exportCsvBtn" class="btn btn-success" aria-label="Exportar CSV da categoria atual">
+                <span class="btn-icon">💾</span>
+                <span class="btn-text">Exportar CSV da Categoria</span>
+            </button>
+            <p class="export-info">
+                Exporta apenas os produtos visíveis na tabela abaixo
+            </p>
+        </section>
+
+        <!-- TABELA -->
+        <section id="tableSection" class="table-section hidden">
+            <div class="table-container">
+                <table id="productsTable">
+                    <thead>
+                        <tr>
+                            <th class="th-reference">Referência</th>
+                            <th class="th-description">Descrição</th>
+                            <th class="th-quantity">Quantidade</th>
+                            <th class="th-category">Categoria</th>
+                            <th class="th-group">Grupo</th>
+                            <th class="th-price">Preço</th>
+                            <th class="th-actions">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="product-table-body">
+                        <!-- Dados serão inseridos aqui via JavaScript -->
+                    </tbody>
                 </table>
             </div>
-
-            <div id="emptyMsg" class="empty-msg">Nenhum item nesta categoria.</div>
-
-        </section>
-    </main>
-
-    <!-- Modal de Edição -->
-    <div class="modal" id="editModal">
-        <div class="modal-content">
-            <h2>🔧 Editar Item</h2>
-
-            <form id="editForm">
-                <label>Descrição:</label>
-                <input type="text" id="editDescricao">
-
-                <label>Preço Venda:</label>
-                <input type="number" step="0.01" id="editPreco">
-
-                <label>Quantidade Real:</label>
-                <input type="number" step="0.01" id="editQtd">
-
-                <label>Código de Barras:</label>
-                <input type="text" id="editBarra">
-
-                <label>NCM:</label>
-                <input type="text" id="editNcm">
-
-                <label>Notas Internas:</label>
-                <textarea id="editNotas"></textarea>
-
-                <div class="modal-actions">
-                    <button type="button" id="btnSalvarEdicao">Salvar</button>
-                    <button type="button" id="btnFecharModal">Fechar</button>
+            <div id="noResults" class="no-results hidden">
+                <div class="no-results-content">
+                    <p class="no-results-text">Nenhum produto encontrado com os filtros atuais.</p>
+                    <button id="clearFiltersBtn" class="btn btn-secondary">
+                        <span class="btn-icon">🔄</span>
+                        <span class="btn-text">Limpar Filtros</span>
+                    </button>
                 </div>
-            </form>
+            </div>
+        </section>
 
-            <h3>📚 Histórico</h3>
-            <div class="history" id="historyBox"></div>
-        </div>
+        <!-- EMPTY STATE -->
+        <section id="emptyState" class="empty-state">
+            <div class="empty-state-content">
+                <div class="empty-icon">📦</div>
+                <h2 class="empty-title">Carregue seu arquivo para começar</h2>
+                <p class="empty-subtitle">
+                    O sistema classificará automaticamente os itens em 4 categorias de estoque
+                    e permitirá filtrar, ordenar e exportar os dados.
+                </p>
+                <div class="empty-actions">
+                    <button id="uploadBtn" class="btn btn-primary">
+                        <span class="btn-icon">📁</span>
+                        <span class="btn-text">Carregar Arquivo</span>
+                    </button>
+                    <button id="sampleDataBtn" class="btn btn-success">
+                        <span class="btn-icon">🧪</span>
+                        <span class="btn-text">Carregar Dados de Exemplo</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="footer">
+            <div class="footer-content">
+                <p class="footer-text">
+                    <span class="footer-icon">📦</span>
+                    Classificador de Produtos • Tuboluc
+                </p>
+                <p class="footer-info">
+                    Processamento 100% local • Nenhum dado enviado para servidores
+                </p>
+            </div>
+        </footer>
     </div>
 
+    <!-- App JS -->
     <script src="app.js"></script>
 </body>
 </html>
