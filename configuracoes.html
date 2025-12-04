@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configurações - Tuboluc Classificador Premium</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="sidebar.css">
+    <link rel="stylesheet" href="tabelas.css">
+
+    <!-- Fontes -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- SIDEBAR -->
+    <nav class="sidebar" role="navigation" aria-label="Menu principal">
+        <div class="sidebar-header">
+            <div class="logo">
+                <div class="logo-icon">📦</div>
+                <div class="logo-text">
+                    <h1>Tuboluc</h1>
+                    <p>Classificador Premium</p>
+                </div>
+            </div>
+            <button class="sidebar-toggle" id="sidebarToggle" aria-label="Alternar menu lateral">
+                <i class="fas fa-bars" aria-hidden="true"></i>
+            </button>
+        </div>
+
+        <div class="sidebar-menu">
+            <!-- Seção Principal -->
+            <div class="menu-section">
+                <h3 class="menu-title">Principal</h3>
+                <ul class="menu-list">
+                    <li><a href="index.html" class="menu-item"><i class="fas fa-chart-line" aria-hidden="true"></i><span>Dashboard</span></a></li>
+                    <li><a href="produtos.html" class="menu-item"><i class="fas fa-boxes" aria-hidden="true"></i><span>Produtos</span><span class="menu-badge" id="prodCountMenu">0</span></a></li>
+                    <li><a href="importar.html" class="menu-item"><i class="fas fa-file-import" aria-hidden="true"></i><span>Importar</span></a></li>
+                </ul>
+            </div>
+
+            <!-- Seção Análises -->
+            <div class="menu-section">
+                <h3 class="menu-title">Análises</h3>
+                <ul class="menu-list">
+                    <li><a href="relatorios.html" class="menu-item"><i class="fas fa-chart-bar" aria-hidden="true"></i><span>Relatórios</span></a></li>
+                    <li><a href="alertas.html" class="menu-item"><i class="fas fa-bell" aria-hidden="true"></i><span>Alertas</span><span class="menu-badge badge-danger" id="alertCountMenu">3</span></a></li>
+                    <li><a href="historico.html" class="menu-item"><i class="fas fa-history" aria-hidden="true"></i><span>Histórico</span></a></li>
+                </ul>
+            </div>
+
+            <!-- Seção Sistema (ativa) -->
+            <div class="menu-section">
+                <h3 class="menu-title">Sistema</h3>
+                <ul class="menu-list">
+                    <li><a href="configuracoes.html" class="menu-item active"><i class="fas fa-cog" aria-hidden="true"></i><span>Configurações</span></a></li>
+                    <li><a href="backup.html" class="menu-item"><i class="fas fa-database" aria-hidden="true"></i><span>Backup</span></a></li>
+                    <li><a href="ajuda.html" class="menu-item"><i class="fas fa-question-circle" aria-hidden="true"></i><span>Ajuda</span></a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar"><i class="fas fa-user-circle" aria-hidden="true"></i></div>
+                <div class="user-details">
+                    <strong>Administrador</strong>
+                    <small>admin@tuboluc.com</small>
+                </div>
+            </div>
+            <button class="btn-logout" onclick="logout()" aria-label="Sair do sistema">
+                <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="main-content">
+        <!-- TOP BAR -->
+        <header class="topbar">
+            <div class="topbar-left">
+                <div class="breadcrumb">
+                    <a href="index.html">Dashboard</a>
+                    <span>/</span>
+                    <span class="current">Configurações</span>
+                </div>
+                <h1 class="page-title">Configurações do Sistema</h1>
+            </div>
+            
+            <div class="topbar-right">
+                <button class="btn btn-primary" onclick="saveAllSettings()" aria-label="Salvar todas as configurações">
+                    <i class="fas fa-save" aria-hidden="true"></i> Salvar Tudo
+                </button>
+                <button class="btn btn-secondary" onclick="resetAllSettings()" aria-label="Restaurar configurações padrão">
+                    <i class="fas fa-undo" aria-hidden="true"></i> Padrão
+                </button>
+            </div>
+        </header>
+
+        <!-- CONTEÚDO DA PÁGINA -->
+        <div class="page-content">
+            <!-- Status do Sistema -->
+            <div class="card status-card">
+                <div class="card-header">
+                    <h3><i class="fas fa-tachometer-alt" aria-hidden="true"></i> Status do Sistema</h3>
+                </div>
+                <div class="status-grid">
+                    <div class="status-item online">
+                        <i class="fas fa-circle" aria-hidden="true"></i>
+                        <span>Sistema Online</span>
+                    </div>
+                    <div class="status-item active">
+                        <i class="fas fa-database" aria-hidden="true"></i>
+                        <span>Banco de Dados: Conectado</span>
+                    </div>
+                    <div class="status-item">
+                        <i class="fas fa-cloud" aria-hidden="true"></i>
+                        <span>Armazenamento: 85% usado</span>
+                    </div>
+                    <div class="status-item warning">
+                        <i class="fas fa-users" aria-hidden="true"></i>
+                        <span>Usuários Ativos: 1/5</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="config-grid">
+                <!-- Configurações Gerais -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-cog" aria-hidden="true"></i> Gerais</h3>
+                    </div>
+                    <div class="config-section">
+                        <div class="form-group">
+                            <label for="appName">Nome do Sistema</label>
+                            <input type="text" id="appName" value="Tuboluc Classificador Premium" aria-describedby="appNameHelp">
+                            <small id="appNameHelp">Nome exibido no cabeçalho</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="themeMode">Modo do Tema</label>
+                            <select id="themeMode" class="filter-select">
+                                <option value="auto">Automático (Sistema)</option>
+                                <option value="light" selected>Claro</option>
+                                <option value="dark">Escuro</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group checkbox-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="animationsEnabled" checked aria-label="Habilitar animações">
+                                <span class="checkmark"></span>
+                                Habilitar animações
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="notificationsEnabled" checked aria-label="Habilitar notificações">
+                                <span class="checkmark"></span>
+                                Notificações em tempo real
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Alertas e Notificações -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-bell" aria-hidden="true"></i> Alertas</h3>
+                    </div>
+                    <div class="config-section">
+                        <div class="form-group">
+                            <label for="stockThreshold">Estoque Crítico</label>
+                            <input type="number" id="stockThreshold" value="5" min="0" aria-describedby="stockHelp">
+                            <small id="stockHelp">Produtos abaixo deste número geram alerta</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="emailAlerts">E-mail de Alertas</label>
+                            <input type="email" id="emailAlerts" value="admin@tuboluc.com" aria-describedby="emailHelp">
+                            <small id="emailHelp">Receberá alertas críticos por e-mail</small>
+                        </div>
+                        
+                        <div class="form-group checkbox-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="emailCritical" checked aria-label="Alertas críticos por e-mail">
+                                <span class="checkmark"></span>
+                                Críticos
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="emailHigh" aria-label="Alertas altos por e-mail">
+                                <span class="checkmark"></span>
+                                Alto
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Usuários e Segurança -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-users-cog" aria-hidden="true"></i> Usuários</h3>
+                    </div>
+                    <div class="config-section">
+                        <div class="user-list">
+                            <div class="user-item active">
+                                <div class="user-avatar"><i class="fas fa-user-circle" aria-hidden="true"></i></div>
+                                <div class="user-info">
+                                    <strong>Administrador</strong>
+                                    <small>admin@tuboluc.com</small>
+                                </div>
+                                <div class="user-actions">
+                                    <button class="btn-icon" onclick="editUser(1)" aria-label="Editar usuário">
+                                        <i class="fas fa-edit" aria-hidden="true"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button class="btn btn-primary btn-sm" onclick="addUser()" aria-label="Adicionar novo usuário">
+                            <i class="fas fa-plus" aria-hidden="true"></i> Novo Usuário
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Integrações -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-plug" aria-hidden="true"></i> Integrações</h3>
+                    </div>
+                    <div class="config-section">
+                        <div class="form-group">
+                            <label class="checkbox-label" for="supabaseEnabled">
+                                <input type="checkbox" id="supabaseEnabled" checked aria-label="Habilitar Supabase">
+                                <span class="checkmark"></span>
+                                Supabase (Ativo)
+                            </label>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="checkbox-label" for="googleDriveEnabled">
+                                <input type="checkbox" id="googleDriveEnabled" aria-label="Habilitar Google Drive">
+                                <span class="checkmark"></span>
+                                Google Drive (Configurar)
+                            </label>
+                        </div>
+                        
+                        <button class="btn btn-outline btn-sm" onclick="testConnections()" aria-label="Testar conexões">
+                            <i class="fas fa-rocket" aria-hidden="true"></i> Testar Conexões
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configurações Avançadas -->
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-tools" aria-hidden="true"></i> Avançadas</h3>
+                </div>
+                <div class="config-section">
+                    <div class="form-group">
+                        <label for="logLevel">Nível de Log</label>
+                        <select id="logLevel" class="filter-select">
+                            <option value="error">Apenas Erros</option>
+                            <option value="warn" selected>Avisos</option>
+                            <option value="info">Informações</option>
+                            <option value="debug">Debug</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="autoBackup" aria-label="Backup automático">
+                            <span class="checkmark"></span>
+                            Backup automático semanal
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <footer class="page-footer">
+            <div class="footer-left">
+                <p>© 2024 Tuboluc Classificador Premium • v2.1.0</p>
+            </div>
+            <div class="footer-right">
+                <span id="lastUpdate">Última atualização: --</span>
+                <span class="status-indicator online">
+                    <i class="fas fa-circle" aria-hidden="true"></i> Sistema online
+                </span>
+            </div>
+        </footer>
+    </main>
+
+    <!-- SCRIPTS -->
+    <script src="app.js" defer></script>
+    <script src="configuracoes.js" defer></script>
+</body>
+</html>

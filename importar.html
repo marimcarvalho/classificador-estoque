@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Importar Dados - Tuboluc Classificador Premium</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="sidebar.css">
+    <link rel="stylesheet" href="importar.css">
+    <link rel="stylesheet" href="responsive.css">
+
+    
+    <!-- Fontes -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- SheetJS -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js" defer></script>
+</head>
+<body>
+    <!-- SIDEBAR -->
+    <nav class="sidebar" role="navigation" aria-label="Menu principal">
+        <div class="sidebar-header">
+            <div class="logo">
+                <div class="logo-icon" aria-hidden="true">📦</div>
+                <div class="logo-text">
+                    <h1>Tuboluc</h1>
+                    <p>Classificador Premium</p>
+                </div>
+            </div>
+            <button class="sidebar-toggle" id="sidebarToggle" aria-label="Alternar menu lateral">
+                <i class="fas fa-bars" aria-hidden="true"></i>
+            </button>
+        </div>
+
+        <div class="sidebar-menu">
+            <!-- Seção Principal -->
+            <div class="menu-section">
+                <h3 class="menu-title">Principal</h3>
+                <ul class="menu-list">
+                    <li>
+                        <a href="index.html" class="menu-item">
+                            <i class="fas fa-chart-line" aria-hidden="true"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="produtos.html" class="menu-item">
+                            <i class="fas fa-boxes" aria-hidden="true"></i>
+                            <span>Produtos</span>
+                            <span class="menu-badge" id="prodCountMenu">0</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="importar.html" class="menu-item active" aria-current="page">
+                            <i class="fas fa-file-import" aria-hidden="true"></i>
+                            <span>Importar</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Seção Análises -->
+            <div class="menu-section">
+                <h3 class="menu-title">Análises</h3>
+                <ul class="menu-list">
+                    <li>
+                        <a href="relatorios.html" class="menu-item">
+                            <i class="fas fa-chart-bar" aria-hidden="true"></i>
+                            <span>Relatórios</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="alertas.html" class="menu-item">
+                            <i class="fas fa-bell" aria-hidden="true"></i>
+                            <span>Alertas</span>
+                            <span class="menu-badge badge-danger" id="alertCountMenu">0</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="historico.html" class="menu-item">
+                            <i class="fas fa-history" aria-hidden="true"></i>
+                            <span>Histórico</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Seção Sistema -->
+            <div class="menu-section">
+                <h3 class="menu-title">Sistema</h3>
+                <ul class="menu-list">
+                    <li>
+                        <a href="configuracoes.html" class="menu-item">
+                            <i class="fas fa-cog" aria-hidden="true"></i>
+                            <span>Configurações</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="backup.html" class="menu-item">
+                            <i class="fas fa-database" aria-hidden="true"></i>
+                            <span>Backup</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="ajuda.html" class="menu-item">
+                            <i class="fas fa-question-circle" aria-hidden="true"></i>
+                            <span>Ajuda</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar" aria-hidden="true">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <div class="user-details">
+                    <strong>Administrador</strong>
+                    <small>admin@tuboluc.com</small>
+                </div>
+            </div>
+            <button class="btn-logout" onclick="logout()" aria-label="Sair do sistema">
+                <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="main-content">
+        <!-- TOP BAR -->
+        <header class="topbar">
+            <div class="topbar-left">
+                <div class="breadcrumb">
+                    <a href="index.html">Dashboard</a>
+                    <span>/</span>
+                    <span class="current">Importar Dados</span>
+                </div>
+                <h1 class="page-title">Importação de Dados</h1>
+            </div>
+            
+            <div class="topbar-right">
+                <div class="topbar-actions">
+                    <button class="topbar-btn" onclick="toggleTheme()" aria-label="Alternar tema claro/escuro">
+                        <i class="fas fa-moon" aria-hidden="true"></i>
+                    </button>
+                    <button class="topbar-btn" onclick="window.location.href='ajuda.html'" 
+                            aria-label="Abrir ajuda do sistema">
+                        <i class="fas fa-question-circle" aria-hidden="true"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- CONTEÚDO DA PÁGINA -->
+        <div class="page-content">
+            <!-- Wizard de Importação -->
+            <div class="import-wizard">
+                <div class="wizard-steps">
+                    <div class="wizard-step active">
+                        <div class="step-number">1</div>
+                        <div class="step-info">
+                            <h4>Selecionar Arquivo</h4>
+                            <p>Escolha o arquivo para importar</p>
+                        </div>
+                    </div>
+                    <div class="wizard-step">
+                        <div class="step-number">2</div>
+                        <div class="step-info">
+                            <h4>Mapear Colunas</h4>
+                            <p>Defina o mapeamento dos dados</p>
+                        </div>
+                    </div>
+                    <div class="wizard-step">
+                        <div class="step-number">3</div>
+                        <div class="step-info">
+                            <h4>Revisar Dados</h4>
+                            <p>Confirme os dados importados</p>
+                        </div>
+                    </div>
+                    <div class="wizard-step">
+                        <div class="step-number">4</div>
+                        <div class="step-info">
+                            <h4>Importar</h4>
+                            <p>Finalizar importação</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Passo 1: Seleção de Arquivo -->
+                <div class="wizard-content active" id="step1">
+                    <div class="upload-section">
+                        <div class="upload-card" id="dropZone">
+                            <div class="upload-icon" aria-hidden="true">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                            </div>
+                            <h3>Arraste e solte seus arquivos aqui</h3>
+                            <p class="upload-info">
+                                Suporta XLSX, XLS, CSV • Máx. 10MB cada • Múltiplos arquivos
+                            </p>
+                            
+                            <div class="upload-options">
+                                <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()"
+                                        aria-label="Abrir seletor de arquivos">
+                                    <i class="fas fa-folder-open" aria-hidden="true"></i> Escolher Arquivo
+                                </button>
+                                
+                                <!-- CORREÇÃO: Input com aria-label -->
+                                <input type="file" id="fileInput" multiple 
+                                       accept=".xlsx,.xls,.csv" 
+                                       class="input-hidden" 
+                                       onchange="handleFileSelect(event)"
+                                       aria-label="Selecionar arquivos para importação">
+                                
+                                <button class="btn btn-secondary" onclick="loadSampleData()"
+                                        aria-label="Carregar dados de exemplo para teste">
+                                    <i class="fas fa-vial" aria-hidden="true"></i> Usar Dados de Exemplo
+                                </button>
+                            </div>
+                            
+                            <div class="file-types">
+                                <div class="file-type">
+                                    <i class="fas fa-file-excel" aria-hidden="true"></i>
+                                    <span>Excel (.xlsx, .xls)</span>
+                                </div>
+                                <div class="file-type">
+                                    <i class="fas fa-file-csv" aria-hidden="true"></i>
+                                    <span>CSV (.csv)</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="file-list" id="fileList" role="list" aria-label="Lista de arquivos selecionados">
+                            <!-- Lista de arquivos será carregada aqui -->
+                        </div>
+                    </div>
+                    
+                    <div class="wizard-actions">
+                        <button class="btn btn-primary" onclick="nextStep(2)" disabled id="btnNextStep1">
+                            Próximo <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Passo 2: Mapeamento de Colunas -->
+                <div class="wizard-content" id="step2">
+                    <div class="mapping-section">
+                        <h3><i class="fas fa-columns" aria-hidden="true"></i> Mapeamento de Colunas</h3>
+                        <p>Relacione as colunas do seu arquivo com os campos do sistema</p>
+                        
+                        <div class="mapping-table">
+                            <div class="mapping-header">
+                                <div class="mapping-col">
+                                    <strong>Coluna no Arquivo</strong>
+                                    <!-- CORREÇÃO: Select com label -->
+                                    <label for="fileColumns" class="visually-hidden">Selecionar coluna do arquivo</label>
+                                    <select id="fileColumns" class="mapping-select"
+                                            aria-label="Colunas disponíveis no arquivo">
+                                        <option value="">Selecione uma coluna...</option>
+                                    </select>
+                                </div>
+                                <div class="mapping-arrow">
+                                    <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                                </div>
+                                <div class="mapping-col">
+                                    <strong>Campo no Sistema</strong>
+                                    <!-- CORREÇÃO: Select com label -->
+                                    <label for="systemFields" class="visually-hidden">Selecionar campo do sistema</label>
+                                    <select id="systemFields" class="mapping-select"
+                                            aria-label="Campos disponíveis no sistema">
+                                        <option value="">Selecione um campo...</option>
+                                        <option value="referencia">Referência</option>
+                                        <option value="descricao">Descrição</option>
+                                        <option value="quantidade">Quantidade</option>
+                                        <option value="preco">Preço Unitário</option>
+                                        <option value="categoria">Categoria</option>
+                                        <option value="fornecedor">Fornecedor</option>
+                                        <option value="ncm">NCM</option>
+                                    </select>
+                                </div>
+                                <div class="mapping-actions">
+                                    <button class="btn btn-sm" onclick="addMapping()"
+                                            aria-label="Adicionar mapeamento">
+                                        <i class="fas fa-plus" aria-hidden="true"></i> Adicionar
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="mapping-list" id="mappingList" role="list" aria-label="Lista de mapeamentos">
+                                <!-- Mapeamentos serão adicionados aqui -->
+                            </div>
+                        </div>
+                        
+                        <div class="preview-section">
+                            <h4><i class="fas fa-eye" aria-hidden="true"></i> Pré-visualização</h4>
+                            <div class="preview-table" id="dataPreview" role="grid" aria-label="Pré-visualização dos dados">
+                                <!-- Pré-visualização dos dados -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="wizard-actions">
+                        <button class="btn btn-secondary" onclick="prevStep(1)" aria-label="Voltar para seleção de arquivo">
+                            <i class="fas fa-arrow-left" aria-hidden="true"></i> Voltar
+                        </button>
+                        <button class="btn btn-primary" onclick="nextStep(3)" aria-label="Avançar para revisão de dados">
+                            Próximo <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Passo 3: Revisão -->
+                <div class="wizard-content" id="step3">
+                    <div class="review-section">
+                        <h3><i class="fas fa-clipboard-check" aria-hidden="true"></i> Revisão dos Dados</h3>
+                        <p>Confirme os dados que serão importados</p>
+                        
+                        <div class="review-stats">
+                            <div class="stat">
+                                <i class="fas fa-file" aria-hidden="true"></i>
+                                <div>
+                                    <span class="stat-value" id="fileCount">0</span>
+                                    <span class="stat-label">Arquivo(s)</span>
+                                </div>
+                            </div>
+                            <div class="stat">
+                                <i class="fas fa-box" aria-hidden="true"></i>
+                                <div>
+                                    <span class="stat-value" id="productCount">0</span>
+                                    <span class="stat-label">Produto(s)</span>
+                                </div>
+                            </div>
+                            <div class="stat">
+                                <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
+                                <div>
+                                    <span class="stat-value" id="warningCount">0</span>
+                                    <span class="stat-label">Aviso(s)</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="data-review">
+                            <div class="review-options">
+                                <h4>Opções de Importação</h4>
+                                <div class="options-grid">
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="updateExisting" checked
+                                               aria-label="Atualizar produtos existentes">
+                                        <span>Atualizar produtos existentes</span>
+                                    </label>
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="skipDuplicates"
+                                               aria-label="Ignorar produtos duplicados">
+                                        <span>Ignorar duplicados</span>
+                                    </label>
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="validateData" checked
+                                               aria-label="Validar dados antes de importar">
+                                        <span>Validar dados antes de importar</span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="warnings-list" id="warningsList" role="alert" aria-label="Lista de avisos da importação">
+                                <!-- Lista de avisos será carregada aqui -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="wizard-actions">
+                        <button class="btn btn-secondary" onclick="prevStep(2)" aria-label="Voltar para mapeamento de colunas">
+                            <i class="fas fa-arrow-left" aria-hidden="true"></i> Voltar
+                        </button>
+                        <button class="btn btn-success" onclick="importData()"
+                                aria-label="Confirmar e iniciar importação dos dados">
+                            <i class="fas fa-check" aria-hidden="true"></i> Confirmar Importação
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Passo 4: Importação -->
+                <div class="wizard-content" id="step4">
+                    <div class="import-progress">
+                        <div class="progress-icon">
+                            <i class="fas fa-sync-alt fa-spin" aria-hidden="true"></i>
+                        </div>
+                        <h3>Importando Dados...</h3>
+                        <p>Por favor, aguarde enquanto processamos seus dados.</p>
+                        
+                        <div class="progress-container">
+                            <div class="progress-bar" role="progressbar" 
+                                 aria-valuemin="0" aria-valuemax="100" 
+                                 aria-valuenow="0" aria-label="Progresso da importação">
+                                <!-- CORREÇÃO: Sem estilo inline -->
+                                <div class="progress-fill" id="importProgress"></div>
+                            </div>
+                            <div class="progress-text" id="progressText">0%</div>
+                        </div>
+                        
+                        <div class="import-details" id="importDetails">
+                            <!-- Detalhes do processo -->
+                        </div>
+                    </div>
+                    
+                    <div class="import-complete hidden" id="importComplete">
+                        <div class="success-icon">
+                            <i class="fas fa-check-circle" aria-hidden="true"></i>
+                        </div>
+                        <h3>Importação Concluída!</h3>
+                        <p id="importResult">Dados importados com sucesso.</p>
+                        
+                        <div class="import-summary" id="importSummary" role="status" aria-live="polite">
+                            <!-- Resumo da importação -->
+                        </div>
+                        
+                        <div class="import-actions">
+                            <button class="btn btn-primary" onclick="window.location.href='produtos.html'"
+                                    aria-label="Ir para página de produtos">
+                                <i class="fas fa-boxes" aria-hidden="true"></i> Ver Produtos
+                            </button>
+                            <button class="btn btn-secondary" onclick="resetImport()"
+                                    aria-label="Fazer nova importação">
+                                <i class="fas fa-redo" aria-hidden="true"></i> Nova Importação
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <footer class="page-footer">
+            <div class="footer-left">
+                <p>© 2024 Tuboluc Classificador Premium • v2.1.0</p>
+            </div>
+            <div class="footer-right">
+                <span id="lastUpdate">Última atualização: --</span>
+                <span class="status-indicator online">
+                    <i class="fas fa-circle" aria-hidden="true"></i> Sistema online
+                </span>
+            </div>
+        </footer>
+    </main>
+
+    <!-- SCRIPTS -->
+    <script src="app.js" defer></script>
+    <script src="importar.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Produtos - Tuboluc Classificador Premium</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="sidebar.css">
+    <link rel="stylesheet" href="tabelas.css">
+    <link rel="stylesheet" href="responsive.css">
+
+    <!-- Fontes -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- SIDEBAR -->
+    <nav class="sidebar" role="navigation" aria-label="Menu principal">
+        <div class="sidebar-header">
+            <div class="logo">
+                <div class="logo-icon"></div>
+                <div class="logo-text">
+                    <h1>Tuboluc</h1>
+                    <p>Classificador Premium</p>
+                </div>
+            </div>
+            <button class="sidebar-toggle" id="sidebarToggle" aria-label="Alternar menu lateral">
+                <i class="fas fa-bars" aria-hidden="true"></i>
+            </button>
+        </div>
+
+        <div class="sidebar-menu">
+            <div class="menu-section">
+                <h3 class="menu-title">Principal</h3>
+                <ul class="menu-list">
+                    <li>
+                        <a href="index.html" class="menu-item">
+                            <i class="fas fa-chart-line" aria-hidden="true"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="produtos.html" class="menu-item active" aria-current="page">
+                            <i class="fas fa-boxes" aria-hidden="true"></i>
+                            <span>Produtos</span>
+                            <span class="menu-badge" id="prodCountMenu">0</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="importar.html" class="menu-item">
+                            <i class="fas fa-file-import" aria-hidden="true"></i>
+                            <span>Importar</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="menu-section">
+                <h3 class="menu-title">Análises</h3>
+                <ul class="menu-list">
+                    <li>
+                        <a href="relatorios.html" class="menu-item">
+                            <i class="fas fa-chart-bar" aria-hidden="true"></i>
+                            <span>Relatórios</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="alertas.html" class="menu-item">
+                            <i class="fas fa-bell" aria-hidden="true"></i>
+                            <span>Alertas</span>
+                            <span class="menu-badge badge-danger" id="alertCountMenu">0</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="historico.html" class="menu-item">
+                            <i class="fas fa-history" aria-hidden="true"></i>
+                            <span>Histórico</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="menu-section">
+                <h3 class="menu-title">Sistema</h3>
+                <ul class="menu-list">
+                    <li>
+                        <a href="configuracoes.html" class="menu-item">
+                            <i class="fas fa-cog" aria-hidden="true"></i>
+                            <span>Configurações</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="backup.html" class="menu-item">
+                            <i class="fas fa-database" aria-hidden="true"></i>
+                            <span>Backup</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="ajuda.html" class="menu-item">
+                            <i class="fas fa-question-circle" aria-hidden="true"></i>
+                            <span>Ajuda</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <div class="user-details">
+                    <strong>Administrador</strong>
+                    <small>admin@tuboluc.com</small>
+                </div>
+            </div>
+            <button class="btn-logout" onclick="logout()" aria-label="Sair do sistema">
+                <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="main-content">
+        <!-- TOP BAR -->
+        <header class="topbar">
+            <div class="topbar-left">
+                <div class="breadcrumb hide-sm">
+                    <a href="index.html">Dashboard</a>
+                    <span> / </span>
+                    <span class="current">Produtos</span>
+                </div>
+                <h1 class="page-title">Gestão de Produtos</h1>
+            </div>
+            <div class="topbar-right">
+                <div class="search-box">
+                    <i class="fas fa-search" aria-hidden="true"></i>
+                    <input type="text" id="searchProducts" placeholder="Buscar produtos..." aria-label="Buscar produtos">
+                </div>
+                <button class="btn btn-primary" onclick="window.location.href='importar.html'">
+                    <i class="fas fa-plus" aria-hidden="true"></i>
+                    Adicionar Produto
+                </button>
+            </div>
+        </header>
+        <!-- CONTEÚDO DA PÁGINA -->
+        <div class="page-content container">
+            <!-- Estatísticas rápidas -->
+            <div class="stats-row dashboard-grid grid-responsive">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-box" aria-hidden="true"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="totalProdutos">0</span>
+                        <span class="stat-label">Produtos Cadastrados</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-dollar-sign" aria-hidden="true"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="valorTotal">R$ 0,00</span>
+                        <span class="stat-label">Valor Total</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="produtosBaixos">0</span>
+                        <span class="stat-label">Estoque Baixo</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-tags" aria-hidden="true"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="categorias">0</span>
+                        <span class="stat-label">Categorias</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filtros Avançados -->
+            <div class="card">
+                <div class="card-header flex-responsive">
+                    <h3 class="card-title">
+                        <i class="fas fa-filter" aria-hidden="true"></i>
+                        Filtros Avançados
+                    </h3>
+                    <button class="btn btn-sm" onclick="resetFilters()">
+                        <i class="fas fa-redo" aria-hidden="true"></i>
+                        Limpar Filtros
+                    </button>
+                </div>
+                <div class="filters-grid flex-responsive">
+                    <div class="filter-group">
+                        <label for="filterCategory">Categoria</label>
+                        <select id="filterCategory" class="filter-select">
+                            <option value="">Todas categorias</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="filterSupplier">Fornecedor</label>
+                        <select id="filterSupplier" class="filter-select">
+                            <option value="">Todos fornecedores</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="filterStock">Estoque</label>
+                        <select id="filterStock" class="filter-select">
+                            <option value="">Todos</option>
+                            <option value="high">Acima de 10</option>
+                            <option value="medium">Entre 5-10</option>
+                            <option value="low">Entre 1-5</option>
+                            <option value="zero">Zerados</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="minPrice">Faixa de Preço</label>
+                        <div class="range-inputs">
+                            <input
+                                type="number"
+                                id="minPrice"
+                                placeholder="Mín"
+                                aria-label="Preço mínimo"
+                            >
+                            <span>até</span>
+                            <input
+                                type="number"
+                                id="maxPrice"
+                                placeholder="Máx"
+                                aria-label="Preço máximo"
+                            >
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lista de Produtos -->
+            <div class="card">
+                <div class="card-header flex-responsive">
+                    <h3 class="card-title">
+                        <i class="fas fa-table" aria-hidden="true"></i>
+                        Lista de Produtos
+                    </h3>
+                    <div class="card-actions">
+                        <div class="view-toggle">
+                            <button class="view-btn active" data-view="table" onclick="changeView('table')" aria-label="Ver em tabela">
+                                <i class="fas fa-table" aria-hidden="true"></i>
+                            </button>
+                            <button class="view-btn" data-view="cards" onclick="changeView('cards')" aria-label="Ver em cards">
+                                <i class="fas fa-th-large" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                        <div class="export-buttons">
+                            <button class="btn btn-sm btn-secondary" onclick="exportData('csv')">
+                                <i class="fas fa-file-csv" aria-hidden="true"></i> CSV
+                            </button>
+                            <button class="btn btn-sm btn-success" onclick="exportData('excel')">
+                                <i class="fas fa-file-excel" aria-hidden="true"></i> Excel
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="exportData('pdf')">
+                                <i class="fas fa-file-pdf" aria-hidden="true"></i> PDF
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Visualização em Tabela -->
+                <div id="tableView" class="table-view">
+                    <div class="table-responsive">
+                        <table class="data-table" id="productsTable">
+                            <thead>
+                                <tr>
+                                    <th width="50">
+                                        <input
+                                            type="checkbox"
+                                            id="selectAll"
+                                            onchange="toggleSelectAll()"
+                                            aria-label="Selecionar todos os produtos"
+                                        >
+                                    </th>
+                                    <th>Referência</th>
+                                    <th>Descrição</th>
+                                    <th>Categoria</th>
+                                    <th>Quantidade</th>
+                                    <th>Preço Unit.</th>
+                                    <th>Valor Total</th>
+                                    <th>Fornecedor</th>
+                                    <th width="120">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="productsTableBody">
+                                <!-- Linhas carregadas via JavaScript -->
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="9">
+                                        <div class="table-footer">
+                                            <div class="table-info">
+                                                Mostrando <span id="showingCount">0</span> de
+                                                <span id="totalCount">0</span> produtos
+                                            </div>
+                                            <div class="pagination">
+                                                <button
+                                                    class="pagination-btn"
+                                                    id="prevPage"
+                                                    disabled
+                                                    onclick="prevPage()"
+                                                    aria-label="Página anterior"
+                                                >
+                                                    <i class="fas fa-chevron-left" aria-hidden="true"></i>
+                                                </button>
+                                                <span class="page-info" id="pageInfo">Página 1 de 1</span>
+                                                <button
+                                                    class="pagination-btn"
+                                                    id="nextPage"
+                                                    disabled
+                                                    onclick="nextPage()"
+                                                    aria-label="Próxima página"
+                                                >
+                                                    <i class="fas fa-chevron-right" aria-hidden="true"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Visualização em Cards -->
+                <div id="cardsView" class="cards-view hidden">
+                    <div class="cards-container" id="productsCards">
+                        <!-- Cards carregados via JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Sem resultados -->
+                <div id="noResults" class="no-results hidden">
+                    <div class="no-results-icon">
+                        <i class="fas fa-search" aria-hidden="true"></i>
+                    </div>
+                    <h3>Nenhum produto encontrado</h3>
+                    <p>Importe dados ou ajuste os filtros para visualizar produtos.</p>
+                    <button class="btn btn-primary" onclick="window.location.href='importar.html'">
+                        <i class="fas fa-upload" aria-hidden="true"></i>
+                        Importar Dados
+                    </button>
+                </div>
+
+                <!-- Ações em Lote -->
+                <div class="batch-actions hidden" id="batchActions">
+                    <div class="batch-info">
+                        <i class="fas fa-check-circle" aria-hidden="true"></i>
+                        <span id="selectedCount">0</span> produtos selecionados
+                    </div>
+                    <div class="batch-buttons">
+                        <button
+                            class="btn btn-sm btn-secondary"
+                            onclick="editSelected()"
+                            aria-label="Editar produtos selecionados"
+                        >
+                            <i class="fas fa-edit" aria-hidden="true"></i> Editar em Massa
+                        </button>
+                        <button
+                            class="btn btn-sm btn-danger"
+                            onclick="deleteSelected()"
+                            aria-label="Excluir produtos selecionados"
+                        >
+                            <i class="fas fa-trash" aria-hidden="true"></i> Excluir Seleção
+                        </button>
+                        <button
+                            class="btn btn-sm btn-success"
+                            onclick="exportSelected()"
+                            aria-label="Exportar produtos selecionados"
+                        >
+                            <i class="fas fa-download" aria-hidden="true"></i> Exportar Seleção
+                        </button>
+                        <button
+                            class="btn btn-sm"
+                            onclick="clearSelection()"
+                            aria-label="Limpar seleção de produtos"
+                        >
+                            <i class="fas fa-times" aria-hidden="true"></i> Limpar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <footer class="page-footer">
+            <div class="footer-left">
+                <p>© 2024 Tuboluc Classificador Premium v2.1.0</p>
+            </div>
+            <div class="footer-right">
+                <span id="lastUpdate">Última atualização --</span>
+                <span class="status-indicator online">
+                    <i class="fas fa-circle" aria-hidden="true"></i>
+                    Sistema online
+                </span>
+            </div>
+        </footer>
+    </main>
+
+    <!-- SCRIPTS -->
+    <script src="app.js" defer></script>
+    <script src="produtos.js" defer></script>
+</body>
+</html>

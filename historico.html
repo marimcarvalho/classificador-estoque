@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Histórico - Tuboluc Classificador Premium</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="sidebar.css">
+    <link rel="stylesheet" href="tabelas.css">
+
+    <!-- Fontes -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- SIDEBAR -->
+    <nav class="sidebar" role="navigation" aria-label="Menu principal">
+        <div class="sidebar-header">
+            <div class="logo">
+                <div class="logo-icon">📦</div>
+                <div class="logo-text">
+                    <h1>Tuboluc</h1>
+                    <p>Classificador Premium</p>
+                </div>
+            </div>
+            <button class="sidebar-toggle" id="sidebarToggle" aria-label="Alternar menu lateral">
+                <i class="fas fa-bars" aria-hidden="true"></i>
+            </button>
+        </div>
+
+        <div class="sidebar-menu">
+            <!-- Seção Principal -->
+            <div class="menu-section">
+                <h3 class="menu-title">Principal</h3>
+                <ul class="menu-list">
+                    <li><a href="index.html" class="menu-item"><i class="fas fa-chart-line" aria-hidden="true"></i><span>Dashboard</span></a></li>
+                    <li><a href="produtos.html" class="menu-item"><i class="fas fa-boxes" aria-hidden="true"></i><span>Produtos</span><span class="menu-badge" id="prodCountMenu">0</span></a></li>
+                    <li><a href="importar.html" class="menu-item"><i class="fas fa-file-import" aria-hidden="true"></i><span>Importar</span></a></li>
+                </ul>
+            </div>
+
+            <!-- Seção Análises -->
+            <div class="menu-section">
+                <h3 class="menu-title">Análises</h3>
+                <ul class="menu-list">
+                    <li><a href="relatorios.html" class="menu-item"><i class="fas fa-chart-bar" aria-hidden="true"></i><span>Relatórios</span></a></li>
+                    <li><a href="alertas.html" class="menu-item"><i class="fas fa-bell" aria-hidden="true"></i><span>Alertas</span><span class="menu-badge badge-danger" id="alertCountMenu">3</span></a></li>
+                    <li><a href="historico.html" class="menu-item active"><i class="fas fa-history" aria-hidden="true"></i><span>Histórico</span></a></li>
+                </ul>
+            </div>
+
+            <!-- Seção Sistema -->
+            <div class="menu-section">
+                <h3 class="menu-title">Sistema</h3>
+                <ul class="menu-list">
+                    <li><a href="configuracoes.html" class="menu-item"><i class="fas fa-cog" aria-hidden="true"></i><span>Configurações</span></a></li>
+                    <li><a href="backup.html" class="menu-item"><i class="fas fa-database" aria-hidden="true"></i><span>Backup</span></a></li>
+                    <li><a href="ajuda.html" class="menu-item"><i class="fas fa-question-circle" aria-hidden="true"></i><span>Ajuda</span></a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar"><i class="fas fa-user-circle" aria-hidden="true"></i></div>
+                <div class="user-details">
+                    <strong>Administrador</strong>
+                    <small>admin@tuboluc.com</small>
+                </div>
+            </div>
+            <button class="btn-logout" onclick="logout()" aria-label="Sair do sistema">
+                <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="main-content">
+        <!-- TOP BAR -->
+        <header class="topbar">
+            <div class="topbar-left">
+                <div class="breadcrumb">
+                    <a href="index.html">Dashboard</a>
+                    <span>/</span>
+                    <span class="current">Histórico</span>
+                </div>
+                <h1 class="page-title">Histórico de Operações</h1>
+            </div>
+            
+            <div class="topbar-right">
+                <!-- Filtros de Período -->
+                <div class="date-range">
+                    <label for="historyPeriod" class="sr-only">Período do histórico</label>
+                    <select id="historyPeriod" class="filter-select">
+                        <option value="today">Hoje</option>
+                        <option value="week" selected>Esta Semana</option>
+                        <option value="month">Este Mês</option>
+                        <option value="year">Este Ano</option>
+                        <option value="all">Todo Período</option>
+                    </select>
+                </div>
+                
+                <!-- Filtro de Tipo -->
+                <div class="history-filters">
+                    <label for="historyType" class="sr-only">Tipo de operação</label>
+                    <select id="historyType" class="filter-select">
+                        <option value="">Todas Operações</option>
+                        <option value="import">Importação</option>
+                        <option value="edit">Edição</option>
+                        <option value="delete">Exclusão</option>
+                        <option value="export">Exportação</option>
+                        <option value="alert">Alertas</option>
+                    </select>
+                </div>
+                
+                <!-- Ações -->
+                <div class="history-actions">
+                    <button class="btn btn-sm btn-secondary" onclick="clearHistory()" aria-label="Limpar histórico selecionado">
+                        <i class="fas fa-trash" aria-hidden="true"></i> Limpar
+                    </button>
+                    <button class="btn btn-sm btn-success" onclick="exportHistory()" aria-label="Exportar histórico">
+                        <i class="fas fa-download" aria-hidden="true"></i> Exportar
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- CONTEÚDO DA PÁGINA -->
+        <div class="page-content">
+            <!-- Estatísticas do Histórico -->
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-history" aria-hidden="true"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="totalOperations">127</span>
+                        <span class="stat-label">Operações Totais</span>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-file-import" aria-hidden="true"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="importCount">23</span>
+                        <span class="stat-label">Importações</span>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-edit" aria-hidden="true"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="editCount">45</span>
+                        <span class="stat-label">Edições</span>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-download" aria-hidden="true"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="exportCount">59</span>
+                        <span class="stat-label">Exportações</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gráfico de Atividade -->
+            <div class="charts-row">
+                <div class="chart-card full-width">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-area" aria-hidden="true"></i> Atividade por Período</h3>
+                        <label for="activityChartFilter" class="sr-only">Filtro do gráfico de atividade</label>
+                        <select id="activityChartFilter" class="chart-filter">
+                            <option value="hourly">Por Hora</option>
+                            <option value="daily" selected>Por Dia</option>
+                            <option value="weekly">Por Semana</option>
+                        </select>
+                    </div>
+                    <div class="chart-container">
+                        anvas id="activityChart" aria-label="Gráfico de atividade do sistema por período"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Histórico Recente -->
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-list-ul" aria-hidden="true"></i> Histórico Recente</h3>
+                    <div class="card-actions">
+                        <div class="view-toggle">
+                            <button class="view-btn active" data-view="table" onclick="changeHistoryView('table')" aria-label="Visualizar histórico em tabela">
+                                <i class="fas fa-table" aria-hidden="true"></i>
+                            </button>
+                            <button class="view-btn" data-view="cards" onclick="changeHistoryView('cards')" aria-label="Visualizar histórico em cards">
+                                <i class="fas fa-th-large" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Visualização em Tabela -->
+                <div id="historyTableView" class="table-view">
+                    <div class="table-responsive">
+                        <table class="data-table" id="historyTable">
+                            <thead>
+                                <tr>
+                                    <th width="50">
+                                        <input type="checkbox" id="selectAllHistory" onchange="toggleSelectAllHistory()" aria-label="Selecionar todas as operações do histórico">
+                                    </th>
+                                    <th>Data/Hora</th>
+                                    <th>Tipo</th>
+                                    <th>Usuário</th>
+                                    <th>Detalhes</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyTableBody">
+                                <!-- Exemplo inicial -->
+                                <tr>
+                                    <td>
+                                        <input type="checkbox" class="history-checkbox" aria-label="Selecionar operação de importação">
+                                    </td>
+                                    <td>04/12/2025 08:45</td>
+                                    <td><span class="badge badge-success">Importação</span></td>
+                                    <td>Administrador</td>
+                                    <td>Importados 150 produtos via CSV</td>
+                                    <td><span class="badge badge-success">Concluído</span></td>
+                                    <td>
+                                        <button class="btn-icon" onclick="viewHistoryDetails(1)" aria-label="Ver detalhes da operação">
+                                            <i class="fas fa-eye" aria-hidden="true"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <input type="checkbox" class="history-checkbox" aria-label="Selecionar operação de edição">
+                                    </td>
+                                    <td>04/12/2025 08:30</td>
+                                    <td><span class="badge badge-warning">Edição</span></td>
+                                    <td>Administrador</td>
+                                    <td>Editado produto A123 - estoque atualizado</td>
+                                    <td><span class="badge badge-success">Concluído</span></td>
+                                    <td>
+                                        <button class="btn-icon" onclick="viewHistoryDetails(2)" aria-label="Ver detalhes da operação">
+                                            <i class="fas fa-eye" aria-hidden="true"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="7">
+                                        <div class="table-footer">
+                                            <div class="table-info">
+                                                Mostrando <span id="showingHistory">2</span> de <span id="totalHistory">127</span> operações
+                                            </div>
+                                            <div class="pagination">
+                                                <button class="pagination-btn" id="prevHistory" disabled aria-label="Página anterior do histórico">
+                                                    <i class="fas fa-chevron-left" aria-hidden="true"></i>
+                                                </button>
+                                                <span class="page-info" id="historyPageInfo">Página 1 de 13</span>
+                                                <button class="pagination-btn" id="nextHistory" aria-label="Próxima página do histórico">
+                                                    <i class="fas fa-chevron-right" aria-hidden="true"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Visualização em Cards -->
+                <div id="historyCardsView" class="cards-view hidden">
+                    <div class="cards-container" id="historyCards">
+                        <!-- Carregado via JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resumo por Tipo -->
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="errorCount">3</span>
+                        <span class="stat-label">Erros</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock" aria-hidden="true"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="pendingCount">0</span>
+                        <span class="stat-label">Pendentes</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <footer class="page-footer">
+            <div class="footer-left">
+                <p>© 2024 Tuboluc Classificador Premium • v2.1.0</p>
+            </div>
+            <div class="footer-right">
+                <span id="lastUpdate">Última atualização: --</span>
+                <span class="status-indicator online">
+                    <i class="fas fa-circle" aria-hidden="true"></i> Sistema online
+                </span>
+            </div>
+        </footer>
+    </main>
+
+    <!-- SCRIPTS -->
+    <script src="app.js" defer></script>
+    <script src="historico.js" defer></script>
+</body>
+</html>

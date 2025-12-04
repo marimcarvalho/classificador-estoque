@@ -1,241 +1,343 @@
 <!DOCTYPE html>
 <html lang="pt-BR" data-theme="light">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Classificador de Produtos - Tuboluc</title>
-    <meta name="description" content="Sistema de classificação automática de produtos por estoque - Tuboluc">
-    
-    <!-- CSS -->
-    <link rel="stylesheet" href="style.css" />
-    
-    <!-- Favicon -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📦</text></svg>">
-    
-    <!-- SheetJS XLSX -->
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
-    
-    <!-- Google Fonts Inter -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-</head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Tuboluc Classificador Premium</title>
 
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="sidebar.css">
+    <link rel="stylesheet" href="dashboard.css">
+    <link rel="stylesheet" href="responsive.css">
+
+    <!-- Fontes -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Use Font Awesome localmente para evitar bloqueios -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous">
+
+    <!-- Chart.js - APENAS UMA VEZ -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+
+</head>
 <body>
-    <div class="app-container">
-        <!-- HEADER -->
-        <header class="header">
-            <h1 class="title">Classificador de Produtos – Tuboluc</h1>
-            
-            <!-- Botão tema -->
-            <button id="toggleTheme" class="theme-btn" aria-label="Alternar tema claro/escuro">
-                <span class="theme-icon">🌓</span>
-                <span class="theme-text">Alternar Tema</span>
+    <!-- SIDEBAR -->
+    <nav class="sidebar" role="navigation" aria-label="Menu principal">
+        <div class="sidebar-header">
+            <div class="logo">
+                <div class="logo-icon" aria-hidden="true"></div>
+                <div class="logo-text">
+                    <h1>Tuboluc</h1>
+                    <p>Classificador Premium</p>
+                </div>
+            </div>
+            <button class="sidebar-toggle" id="sidebarToggle" aria-label="Alternar menu lateral">
+                <i class="fas fa-bars" aria-hidden="true"></i>
             </button>
+        </div>
+
+        <div class="sidebar-menu">
+            <!-- Seção Principal -->
+            <div class="menu-section">
+                <h3 class="menu-title">Principal</h3>
+                <ul class="menu-list">
+                    <li>
+                        <a href="index.html" class="menu-item active" aria-current="page">
+                            <i class="fas fa-chart-line" aria-hidden="true"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="produtos.html" class="menu-item">
+                            <i class="fas fa-boxes" aria-hidden="true"></i>
+                            <span>Produtos</span>
+                            <span class="menu-badge" id="prodCountMenu">0</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="importar.html" class="menu-item">
+                            <i class="fas fa-file-import" aria-hidden="true"></i>
+                            <span>Importar</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Seção Análises -->
+            <div class="menu-section">
+                <h3 class="menu-title">Análises</h3>
+                <ul class="menu-list">
+                    <li>
+                        <a href="relatorios.html" class="menu-item">
+                            <i class="fas fa-chart-bar" aria-hidden="true"></i>
+                            <span>Relatórios</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="alertas.html" class="menu-item">
+                            <i class="fas fa-bell" aria-hidden="true"></i>
+                            <span>Alertas</span>
+                            <span class="menu-badge badge-danger" id="alertCountMenu">0</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="historico.html" class="menu-item">
+                            <i class="fas fa-history" aria-hidden="true"></i>
+                            <span>Histórico</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Seção Sistema -->
+            <div class="menu-section">
+                <h3 class="menu-title">Sistema</h3>
+                <ul class="menu-list">
+                    <li>
+                        <a href="configuracoes.html" class="menu-item">
+                            <i class="fas fa-cog" aria-hidden="true"></i>
+                            <span>Configurações</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="backup.html" class="menu-item">
+                            <i class="fas fa-database" aria-hidden="true"></i>
+                            <span>Backup</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="ajuda.html" class="menu-item">
+                            <i class="fas fa-question-circle" aria-hidden="true"></i>
+                            <span>Ajuda</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar" aria-hidden="true">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <div class="user-details">
+                    <strong>Administrador</strong>
+                    <small>admin@tuboluc.com</small>
+                </div>
+            </div>
+            <button class="btn-logout" onclick="logout()" aria-label="Sair do sistema">
+                <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="main-content">
+        <!-- TOP BAR -->
+        <header class="topbar">
+            <div class="topbar-left">
+                <div class="breadcrumb hide-sm">
+                    <a href="index.html">Dashboard</a>
+                </div>
+                <h1 class="page-title">Visão Geral</h1>
+            </div>
+            <div class="topbar-right">
+                <!-- Data e hora -->
+                <div class="datetime hide-xs">
+                    <i class="fas fa-calendar-alt" aria-hidden="true"></i>
+                    <span id="currentDate">Carregando...</span>
+                </div>
+                <!-- Atalhos rápidos -->
+                <div class="quick-actions">
+                    <button class="btn-icon" onclick="window.location.href='importar.html'" aria-label="Importar dados">
+                        <i class="fas fa-upload" aria-hidden="true"></i>
+                    </button>
+                    <button class="btn-icon" onclick="exportDashboard()" aria-label="Exportar dashboard">
+                        <i class="fas fa-download" aria-hidden="true"></i>
+                    </button>
+                    <button class="btn-icon" onclick="toggleTheme()" aria-label="Alternar tema claro/escuro">
+                        <i class="fas fa-moon" aria-hidden="true"></i>
+                    </button>
+                </div>
+            </div>
         </header>
 
-        <!-- UPLOAD -->
-        <section class="card upload-card" id="uploadSection">
-            <label class="upload-label" for="fileInput">
-                <span class="upload-icon">📁</span>
-                <span class="upload-text">Carregar Arquivo</span>
-            </label>
-            
-            <input
-                id="fileInput"
-                class="input-hidden"
-                type="file"
-                accept=".xlsx,.xls,.csv"
-                aria-label="Selecionar arquivo Excel ou CSV"
-            />
-            
-            <p class="upload-info">
-                Formatos aceitos: <strong>XLSX</strong>, <strong>XLS</strong> ou <strong>CSV</strong>
-                <br>
-                <small>Os dados são processados localmente no seu navegador</small>
-            </p>
-            
-            <!-- ERRO -->
-            <div id="errorBox" class="error-box" role="alert"></div>
-        </section>
+        <!-- CONTEÚDO DA PÁGINA -->
+        <div class="page-content container p-responsive">
+            <!-- KPIs Rápidos -->
+            <div class="kpi-row dashboard-grid grid-responsive">
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <i class="fas fa-boxes" aria-hidden="true"></i>
+                        <h3>Total de Produtos</h3>
+                    </div>
+                    <div class="kpi-body">
+                        <div class="kpi-value" id="kpiTotal">0</div>
+                        <div class="kpi-change positive text-responsive">
+                            <i class="fas fa-arrow-up" aria-hidden="true"></i>
+                            <span id="changeProdutos">0%</span>
+                        </div>
+                    </div>
+                    <div class="kpi-footer">
+                        <a href="produtos.html">Ver todos</a>
+                    </div>
+                </div>
 
-        <!-- STATS -->
-        <section id="statsSection" class="stats hidden">
-            <div class="stat stat-green">
-                <span class="stat-label">📈 Acima de 10</span>
-                <span id="count_acima10" class="stat-value">0</span>
-                <small class="stat-sub">Estoque elevado</small>
-            </div>
-            
-            <div class="stat stat-blue">
-                <span class="stat-label">📦 Entre 5–10</span>
-                <span id="count_entre5_10" class="stat-value">0</span>
-                <small class="stat-sub">Estoque médio</small>
-            </div>
-            
-            <div class="stat stat-yellow">
-                <span class="stat-label">⚠️ Entre 1–5</span>
-                <span id="count_entre1_5" class="stat-value">0</span>
-                <small class="stat-sub">Estoque baixo</small>
-            </div>
-            
-            <div class="stat stat-red">
-                <span class="stat-label">📉 Zerados (≤1)</span>
-                <span id="count_zerados" class="stat-value">0</span>
-                <small class="stat-sub">Necessita reposição</small>
-            </div>
-        </section>
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <i class="fas fa-dollar-sign" aria-hidden="true"></i>
+                        <h3>Valor Total</h3>
+                    </div>
+                    <div class="kpi-body">
+                        <div class="kpi-value" id="kpiTotalValue">R$ 0,00</div>
+                        <div class="kpi-detail text-responsive">Em estoque</div>
+                    </div>
+                    <div class="kpi-footer">
+                        <span id="mediaValorMedia">R$ 0,00</span>
+                    </div>
+                </div>
 
-        <!-- FILTROS -->
-        <section id="filterSection" class="filters hidden">
-            <div class="filter-group">
-                <label for="searchInput" class="filter-label">
-                    <span class="filter-icon">🔍</span>
-                    Buscar item:
-                </label>
-                <input
-                    id="searchInput"
-                    type="text"
-                    class="filter-input"
-                    placeholder="Digite referência, descrição ou NCM..."
-                    aria-label="Campo de busca por produtos"
-                />
-            </div>
-            
-            <div class="filter-group">
-                <label for="sortSelect" class="filter-label">
-                    <span class="filter-icon">📊</span>
-                    Ordenar por:
-                </label>
-                <select id="sortSelect" class="filter-input" aria-label="Ordenar tabela">
-                    <option value="descricao">Descrição (A → Z)</option>
-                    <option value="descricao_desc">Descrição (Z → A)</option>
-                    <option value="quantidade">Quantidade (Maior → Menor)</option>
-                    <option value="quantidade_desc">Quantidade (Menor → Maior)</option>
-                    <option value="preco">Preço (Maior → Menor)</option>
-                    <option value="preco_desc">Preço (Menor → Maior)</option>
-                    <option value="referencia">Referência</option>
-                </select>
-            </div>
-            
-            <button id="resetFilters" class="btn btn-secondary" aria-label="Limpar filtros aplicados">
-                <span class="btn-icon">🔄</span>
-                <span class="btn-text">Limpar Filtros</span>
-            </button>
-        </section>
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
+                        <h3>Produtos Críticos</h3>
+                    </div>
+                    <div class="kpi-body">
+                        <div class="kpi-value" id="kpiCritical">0</div>
+                        <div class="kpi-badge danger text-responsive">Atenção</div>
+                    </div>
+                    <div class="kpi-footer">
+                        <a href="alertas.html">Ver alertas</a>
+                    </div>
+                </div>
 
-        <!-- ABAS -->
-        <section id="tabsSection" class="tabs-section hidden" role="tablist">
-            <button class="tab tab-active" role="tab" aria-selected="true" data-tab="todos">
-                <span class="tab-icon">🌟</span>
-                <span class="tab-text">Todos os Itens</span>
-                <span id="badge_todos" class="badge">0</span>
-            </button>
-            
-            <button class="tab" role="tab" aria-selected="false" data-tab="acima10">
-                <span class="tab-icon">📈</span>
-                <span class="tab-text">Acima de 10</span>
-                <span id="badge_acima10" class="badge">0</span>
-            </button>
-            
-            <button class="tab" role="tab" aria-selected="false" data-tab="entre5_10">
-                <span class="tab-icon">📦</span>
-                <span class="tab-text">Entre 5–10</span>
-                <span id="badge_entre5_10" class="badge">0</span>
-            </button>
-            
-            <button class="tab" role="tab" aria-selected="false" data-tab="entre1_5">
-                <span class="tab-icon">⚠️</span>
-                <span class="tab-text">Entre 1–5</span>
-                <span id="badge_entre1_5" class="badge">0</span>
-            </button>
-            
-            <button class="tab" role="tab" aria-selected="false" data-tab="zerados">
-                <span class="tab-icon">📉</span>
-                <span class="tab-text">Zerados</span>
-                <span id="badge_zerados" class="badge">0</span>
-            </button>
-        </section>
-
-        <!-- EXPORTAÇÃO -->
-        <section id="exportSection" class="export-section hidden">
-            <button id="exportCsvBtn" class="btn btn-success" aria-label="Exportar CSV da categoria atual">
-                <span class="btn-icon">💾</span>
-                <span class="btn-text">Exportar CSV da Categoria</span>
-            </button>
-            <p class="export-info">
-                Exporta apenas os produtos visíveis na tabela abaixo
-            </p>
-        </section>
-
-        <!-- TABELA -->
-        <section id="tableSection" class="table-section hidden">
-            <div class="table-container">
-                <table id="productsTable">
-                    <thead>
-                        <tr>
-                            <th class="th-reference">Referência</th>
-                            <th class="th-description">Descrição</th>
-                            <th class="th-quantity">Quantidade</th>
-                            <th class="th-category">Categoria</th>
-                            <th class="th-group">Grupo</th>
-                            <th class="th-price">Preço</th>
-                            <th class="th-actions">Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="product-table-body">
-                        <!-- Dados serão inseridos aqui via JavaScript -->
-                    </tbody>
-                </table>
-            </div>
-            <div id="noResults" class="no-results hidden">
-                <div class="no-results-content">
-                    <p class="no-results-text">Nenhum produto encontrado com os filtros atuais.</p>
-                    <button id="clearFiltersBtn" class="btn btn-secondary">
-                        <span class="btn-icon">🔄</span>
-                        <span class="btn-text">Limpar Filtros</span>
-                    </button>
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <i class="fas fa-tags" aria-hidden="true"></i>
+                        <h3>Categorias</h3>
+                    </div>
+                    <div class="kpi-body">
+                        <div class="kpi-value" id="kpiGroups">0</div>
+                        <div class="kpi-detail text-responsive">Diversificadas</div>
+                    </div>
+                    <div class="kpi-footer">
+                        <span id="categoriaPrincipal">Nenhuma</span>
+                    </div>
                 </div>
             </div>
-        </section>
 
-        <!-- EMPTY STATE -->
-        <section id="emptyState" class="empty-state">
-            <div class="empty-state-content">
-                <div class="empty-icon">📦</div>
-                <h2 class="empty-title">Carregue seu arquivo para começar</h2>
-                <p class="empty-subtitle">
-                    O sistema classificará automaticamente os itens em 4 categorias de estoque
-                    e permitirá filtrar, ordenar e exportar os dados.
-                </p>
-                <div class="empty-actions">
-                    <button id="uploadBtn" class="btn btn-primary">
-                        <span class="btn-icon">📁</span>
-                        <span class="btn-text">Carregar Arquivo</span>
-                    </button>
-                    <button id="sampleDataBtn" class="btn btn-success">
-                        <span class="btn-icon">🧪</span>
-                        <span class="btn-text">Carregar Dados de Exemplo</span>
-                    </button>
+            <!-- Gráficos -->
+            <div class="charts-row dashboard-grid grid-responsive">
+                <div class="chart-card">
+                    <div class="chart-header flex-responsive">
+                        <h3 class="card-title text-responsive">
+                            <i class="fas fa-chart-pie" aria-hidden="true"></i>
+                            Distribuição por Categoria
+                        </h3>
+                        <select
+                            class="chart-filter"
+                            id="distribuicaoFilter"
+                            aria-label="Filtro de distribuição por categoria"
+                        >
+                            <option value="quantidade">Por Quantidade</option>
+                            <option value="valor">Por Valor</option>
+                        </select>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="chartDistribuicao"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <div class="chart-header flex-responsive">
+                        <h3 class="card-title text-responsive">
+                            <i class="fas fa-chart-bar" aria-hidden="true"></i>
+                            Top 10 Produtos
+                        </h3>
+                        <div class="chart-legend text-responsive" id="top10Legend"></div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="chartTop10"></canvas>
+                    </div>
                 </div>
             </div>
-        </section>
+
+            <!-- Grade inferior: tabela + alertas -->
+            <div class="dashboard-bottom">
+                <!-- Tabela de produtos recentes -->
+                <div class="card">
+                    <div class="card-header flex-responsive">
+                        <h3 class="card-title text-responsive">
+                            <i class="fas fa-clock" aria-hidden="true"></i>
+                            Atualizações Recentes
+                        </h3>
+                        <a href="produtos.html" class="btn-link">Ver todos</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Produto</th>
+                                    <th>Categoria</th>
+                                    <th>Quantidade</th>
+                                    <th>Valor Unit.</th>
+                                    <th>Última Atualização</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentProducts">
+                                <!-- Carregado via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Alertas rápidos -->
+                <div class="card alert-card">
+                    <div class="card-header flex-responsive">
+                        <h3 class="card-title text-responsive">
+                            <i class="fas fa-bell" aria-hidden="true"></i>
+                            Alertas Prioritários
+                        </h3>
+                        <span class="badge badge-danger" id="alertCount">0</span>
+                    </div>
+                    <div class="alerts-list" id="priorityAlerts">
+                        <div class="alert-item info">
+                            <i class="fas fa-info-circle" aria-hidden="true"></i>
+                            <div class="alert-content">
+                                <strong>Bem-vindo ao Dashboard</strong>
+                                <p class="text-responsive">Importe dados para começar a análise.</p>
+                            </div>
+                            <button
+                                class="btn-icon"
+                                onclick="window.location.href='importar.html'"
+                                aria-label="Importar dados para começar a análise"
+                            >
+                                <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- FOOTER -->
-        <footer class="footer">
-            <div class="footer-content">
-                <p class="footer-text">
-                    <span class="footer-icon">📦</span>
-                    Classificador de Produtos • Tuboluc
-                </p>
-                <p class="footer-info">
-                    Processamento 100% local • Nenhum dado enviado para servidores
-                </p>
+        <footer class="page-footer">
+            <div class="footer-left text-responsive">
+                <p>© 2024 Tuboluc Classificador Premium v2.1.0</p>
+            </div>
+            <div class="footer-right text-responsive">
+                <span id="lastUpdate">Última atualização --</span>
+                <span class="status-indicator online">
+                    <i class="fas fa-circle" aria-hidden="true"></i>
+                    Sistema online
+                </span>
             </div>
         </footer>
-    </div>
+    </main>
 
-    <!-- App JS -->
-    <script src="app.js"></script>
+    <!-- SCRIPTS -->
+    <script src="app.js" defer></script>
+    <script src="dashboard.js" defer></script>
 </body>
 </html>

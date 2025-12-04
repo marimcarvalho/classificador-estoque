@@ -1,0 +1,177 @@
+/* dashboard.css - estilos específicos do Dashboard */
+
+/* Contêiner geral do conteúdo do dashboard */
+.page-content {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 1.5rem 2rem;
+}
+
+/* Grade dos KPIs (cards do topo) */
+.kpi-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.25rem;
+    margin-top: 1rem;
+}
+
+.kpi-card {
+    background: var(--bg-surface);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    box-shadow: var(--shadow-xs);
+    transition: all var(--transition-fast);
+}
+
+.kpi-card:hover {
+    box-shadow: var(--shadow-sm);
+    transform: translateY(-2px);
+    border-color: var(--primary-300);
+}
+
+.kpi-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.kpi-header i {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--primary-50);
+    color: var(--primary-600);
+}
+
+.kpi-body {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.kpi-value {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.kpi-detail,
+.kpi-badge,
+.kpi-change {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.kpi-badge.danger {
+    color: var(--danger);
+    font-weight: 600;
+}
+
+/* Rodapé dos cards */
+.kpi-footer {
+    margin-top: 0.4rem;
+    font-size: 0.8rem;
+}
+
+.kpi-footer a,
+.kpi-footer span {
+    color: var(--primary-600);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+/* Linha dos gráficos */
+.charts-row {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 2fr);
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.chart-card {
+    background: var(--bg-surface);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    padding: 1.25rem 1.5rem;
+    box-shadow: var(--shadow-xs);
+}
+
+.chart-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.chart-header h3 {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.95rem;
+}
+
+.chart-header h3 i {
+    color: var(--primary-600);
+}
+
+.chart-filter {
+    min-width: 150px;
+}
+
+/* Área do canvas dos gráficos */
+.chart-container {
+    position: relative;
+    height: 340px;
+    margin-top: 0.75rem;
+}
+
+/* Grade inferior: tabela + alertas */
+.dashboard-bottom {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1.3fr);
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.alert-card {
+    border-radius: var(--radius-lg);
+}
+
+/* Responsividade específica do dashboard */
+@media (max-width: 1024px) {
+    .page-content {
+        padding: 1rem 1.25rem;
+    }
+
+    .charts-row {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-bottom {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .page-content {
+        padding: 0.75rem 0.75rem 1rem;
+    }
+
+    .kpi-row {
+        grid-template-columns: 1fr;
+    }
+
+    .chart-container {
+        height: 280px;
+    }
+}
